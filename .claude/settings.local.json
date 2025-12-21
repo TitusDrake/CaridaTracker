@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sudo apt update:*)",
+      "Bash(cat:*)",
+      "Bash(curl:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoidGVzdEBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoidGVzdHVzZXIxMjMiLCJpYXQiOjE3NjYyODc5OTIsImV4cCI6MTc2Njg5Mjc5Mn0.bR08dEl9lyikXSI3guu1CgaJpHr0MLWUgEmalZAR0vU\")",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}
