@@ -585,12 +585,43 @@ git checkout development
 
 ## Next Session Plan
 
-1. Create seed data for organizations and clubs
-2. Promote test user to super_admin
-3. Build organization/club management API endpoints
-4. Build troop creation API endpoints with club visibility
-5. Connect frontend to backend authentication
-6. Build troop listing screen in mobile app
+### Phase 1: Frontend Authentication (PRIORITY)
+1. Create "Create New User" (Register) screen in mobile app
+2. Create "Forgot Password" screen/component in mobile app
+3. Connect frontend login to backend API
+   - Implement JWT token storage (AsyncStorage)
+   - Add authentication context/state management
+   - Update login screen to call backend API
+4. Implement logout logic (clear tokens, redirect to login)
+5. Test end-to-end authentication flow
+
+### Phase 2: Backend Data & API
+6. Create seed data migration for organizations and clubs
+   - 501st Legion → Garrison Carida
+   - Rebel Legion → Kyber Base
+   - Mandalorian Mercs → Mav Oya'la Clan
+   - Mid Atlantic Droid and Prop Builders
+   - Jedi Sith Alliance
+7. Promote test user to super_admin
+8. Create TypeScript models (Organization, Club, ClubMember, TroopClub)
+9. Build Organizations API endpoints (CRUD)
+10. Build Clubs API endpoints (CRUD)
+11. Build ClubMembers API endpoints (manage memberships/roles)
+12. Build Troops API endpoints with club visibility filtering
+13. Build TroopAttendees API endpoints (signup per club)
+
+### Phase 3: Security & Permissions
+14. Create permission middleware
+    - super_admin check
+    - admin check (scoped to club)
+    - member check (scoped to club)
+    - troop visibility check (is troop enabled for user's clubs)
+
+### Phase 4: Mobile App Features
+15. Build troop listing screen
+16. Build troop detail screen
+17. Build user stats/profile page (per-club stats)
+18. Build club selection/switching UI
 
 ---
 
@@ -599,7 +630,19 @@ git checkout development
 - Database setup instructions
 - Project structure
 - Migration commands and best practices
+- DEVELOPMENT_SETUP.md created in CaridaTracker project
+- SESSION_NOTES.md moved to CaridaTracker project (central tracking)
 
 ---
 
-*End of session notes. Resume tomorrow with multi-tenancy data seeding and API endpoint development.*
+## Current Todos (Active Session)
+**Updated: December 21, 2025 - 1:10 AM**
+1. ⏳ Create "Create New User" (Register) screen
+2. ⏳ Create "Forgot Password" screen
+3. ⏳ Hook up frontend to backend authentication
+4. ⏳ Implement JWT token storage
+5. ⏳ Test authentication flow end-to-end
+
+---
+
+*Session in progress. Focus: Frontend authentication before backend API development.*
