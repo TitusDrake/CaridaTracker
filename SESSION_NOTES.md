@@ -636,13 +636,469 @@ git checkout development
 ---
 
 ## Current Todos (Active Session)
-**Updated: December 21, 2025 - 1:10 AM**
-1. ⏳ Create "Create New User" (Register) screen
-2. ⏳ Create "Forgot Password" screen
-3. ⏳ Hook up frontend to backend authentication
-4. ⏳ Implement JWT token storage
-5. ⏳ Test authentication flow end-to-end
+**Updated: December 21, 2025**
+1. ✅ Create "Create New User" (Register) screen
+2. ✅ Create "Forgot Password" screen
+3. ✅ Hook up frontend to backend authentication
+4. ✅ Implement JWT token storage
+5. ✅ Expanded registration form with additional fields
+6. ✅ Install AsyncStorage package
+7. ✅ Install React Native Paper (UI component library)
+8. ✅ Migrate all screens to use Paper components
+9. ✅ Implement Star Wars color themes (Light Side, Dark Side, Bounty Hunter)
+10. ✅ Update backend API to accept expanded registration fields
+11. ✅ Add user profile columns to database (firstName, lastName, phoneNumber, tkid)
+12. ✅ Implement user-specific theme persistence
+13. ✅ Set up ESLint for both projects
+14. ✅ Install ESLint dependencies in WSL (CaridaTracker-api)
+15. ✅ Create Organizations and Clubs API endpoints
+16. ✅ Connect Organization/Club dropdowns to actual API endpoints
+17. ✅ Make organization and club required fields in registration
+18. ✅ Update login to accept username or email
+19. ✅ Create seed data migration for organizations and clubs
+20. ⏳ Test authentication flow end-to-end
+21. ⏳ Apply seed data migration in WSL
+22. ⏳ Build ClubMembers API endpoints (manage memberships/roles)
+23. ⏳ Build Troops API endpoints with club visibility filtering
+24. ⏳ Build TroopAttendees API endpoints (signup per club)
 
 ---
 
-*Session in progress. Focus: Frontend authentication before backend API development.*
+*Session in progress. Registration fully functional with required organization/club selection. Login accepts username or email. Seed data migration ready to apply.*
+
+---
+
+## Session Log
+
+### December 21, 2025 - 1:45 AM
+**Frontend Authentication Implementation**
+
+Files Created:
+- `app/register.tsx` - User registration screen with form validation
+- `app/forgot-password.tsx` - Password reset request screen
+- `services/api.ts` - API service for backend communication
+- `contexts/AuthContext.tsx` - Authentication state management context
+
+Files Modified:
+- `app/login.tsx` - Connected to auth context, added error handling and loading state
+- `app/_layout.tsx` - Wrapped app with AuthProvider, added screen routes
+- `app/(tabs)/index.tsx` - Connected logout to auth context, shows username in welcome
+
+Features Implemented:
+- Login form with API integration
+- Registration form with client-side validation
+- Forgot password form (backend endpoint needed)
+- JWT token storage with AsyncStorage
+- Auth context for global state management
+- Error display for API errors
+- Loading states on all forms
+- Navigation between auth screens
+
+**Pending:**
+- Run `npm install @react-native-async-storage/async-storage` to install AsyncStorage
+- Start backend API server for testing
+- Test end-to-end authentication flow
+
+### December 21, 2025
+**Expanded Registration Form**
+
+User requested additional registration fields. Updated the following:
+
+**`app/register.tsx`** - Expanded form with sections:
+- Account Information: username, email, password, confirm password (all required)
+- Personal Information: first name, last name (required), phone number (optional)
+- Club Information: 501st TKID, Organization dropdown, Club dropdown (all optional)
+- Picker component for Organization/Club selection (cascading - club resets when org changes)
+- Hardcoded orgs/clubs for now (501st, Rebel Legion, Mandalorian Mercs, Droid Builders, Saber Guild)
+
+**`services/api.ts`** - Added:
+- `RegisterData` interface with all registration fields
+- Updated `User` interface with optional profile fields
+- Modified `authApi.register()` to accept `RegisterData` object
+
+**`contexts/AuthContext.tsx`** - Updated:
+- Import and use `RegisterData` type
+- `register()` function now accepts full `RegisterData` object
+
+**Dependencies:**
+- ✅ `@react-native-async-storage/async-storage` - Installed
+- ✅ `react-native-paper` - Installed (UI component library)
+- ✅ `react-native-safe-area-context` - Installed (required by Paper)
+- ~~`@react-native-picker/picker`~~ - No longer needed (using Paper's Menu instead)
+
+**Next Steps - Backend Updates Needed:**
+
+1. **Database Migration** - Add columns to users table:
+   - `first_name` VARCHAR(100)
+   - `last_name` VARCHAR(100)
+   - `phone_number` VARCHAR(20)
+   - `tkid` VARCHAR(20) (e.g., "TK-12345")
+
+2. **Update `/api/auth/register` endpoint** to accept new fields:
+   - firstName, lastName, phoneNumber, tkid, organizationId, clubId
+
+3. **Update User model/types** in backend to include new fields
+
+4. **Connect Organization/Club dropdowns** to actual API endpoints (currently hardcoded)
+
+5. **Test end-to-end** registration and login flow
+
+### December 21, 2025 (continued)
+**Migrated to React Native Paper UI Library**
+
+Installed React Native Paper to provide consistent UI components:
+```bash
+npm install react-native-paper react-native-safe-area-context
+```
+
+**Files Updated:**
+
+**`app/_layout.tsx`**
+- Added PaperProvider wrapper with custom MD3 theme
+- Configured light/dark themes with brand colors (#007AFF primary)
+- Integrated Paper theming with React Navigation
+
+**`app/login.tsx`**
+- Paper's outlined TextInput with password visibility toggle
+- Paper's Button component (contained and text modes)
+- Paper's Text and HelperText for typography
+
+**`app/register.tsx`**
+- All inputs use Paper's TextInput (outlined mode)
+- Custom Dropdown component built with Paper's Menu
+- Password visibility toggles on both fields
+- No longer needs @react-native-picker/picker
+
+**`app/forgot-password.tsx`**
+- Paper TextInput, Button, Text, Surface components
+
+**`app/(tabs)/index.tsx`**
+- Stats use Paper's Card component
+- Empty state uses Paper's Surface
+- Logout uses Paper's outlined Button
+
+**Benefits of React Native Paper:**
+- Single library for all UI components (no individual packages)
+- Built-in dark/light mode support
+- Material Design 3 styling
+- Consistent theming
+- Excellent Expo compatibility
+
+### December 21, 2025 (continued)
+**Implemented Star Wars Color Themes**
+
+Created three themed color schemes inspired by Star Wars factions:
+
+**Theme 1: Light Side (Default)**
+- Background: White (#FFFFFF)
+- Primary/Buttons: Blue (#007AFF)
+- Accent: Light Blue (#5AC8FA)
+- Inspired by: Jedi, Rebels
+
+**Theme 2: Dark Side**
+- Background: Black (#000000)
+- Primary/Buttons: Red (#FF3B30)
+- Accent: Light Red (#FF6961)
+- Inspired by: Sith, Empire
+
+**Theme 3: Bounty Hunter**
+- Background: Light Gray (#E8E8E8)
+- Primary/Buttons: Forest Green (#228B22)
+- Accent: Light Green (#90EE90)
+- Inspired by: Mandalorians, Boba Fett
+
+**Files Created:**
+
+**`contexts/ThemeContext.tsx`**
+- ThemeProvider component wraps the app
+- useTheme hook for accessing current theme
+- Theme persistence with AsyncStorage
+- Helper functions: getPaperTheme(), getNavigationTheme(), getThemeColors()
+- Type definitions for ThemeName
+
+**Files Modified:**
+
+**`app/_layout.tsx`**
+- Wrapped with ThemeProvider
+- ThemedApp inner component uses theme context
+- Dynamic Paper and Navigation themes based on selection
+- StatusBar adapts to light/dark themes
+
+**`app/(tabs)/index.tsx`**
+- Added theme selector using SegmentedButtons
+- "Choose your allegiance" section
+- Stats cards use theme primary color
+- Dynamic border colors
+
+**`components/themed-view.tsx`**
+- Updated to use ThemeContext instead of old useThemeColor hook
+- Background color comes from current theme
+
+**Features:**
+- Theme persists across app restarts (AsyncStorage)
+- All UI components automatically update when theme changes
+- Paper components use theme colors
+- Navigation uses theme colors
+- Status bar adapts (light/dark)
+
+### December 21, 2025 (continued)
+**User-Specific Theme Persistence**
+
+Enhanced theme system to persist theme preferences per user:
+
+**`contexts/ThemeContext.tsx`** - Updated:
+- Integrated with AuthContext to access current user
+- Theme storage now uses user-specific keys: `@CaridaTracker:theme:${userId}`
+- Automatically loads user's saved theme when they log in
+- Falls back to global theme key when no user is logged in
+- Theme reloads when user changes (login/logout)
+
+**Behavior:**
+- Each user has their own theme preference
+- Theme persists across app restarts per user
+- When user logs in, their saved theme is automatically loaded
+- When user changes theme, it saves to their user-specific storage key
+
+### December 21, 2025 (continued)
+**Backend Registration Fields Implementation**
+
+Completed backend updates to accept expanded registration fields:
+
+**Database Migration:**
+- Created migration: `1766338118000_add-user-profile-fields.js`
+- Added columns to `users` table:
+  - `first_name` VARCHAR(100), nullable
+  - `last_name` VARCHAR(100), nullable
+  - `phone_number` VARCHAR(20), nullable
+  - `tkid` VARCHAR(20), nullable
+
+**Backend Files Updated:**
+
+**`src/types/index.ts`**
+- Updated `User` interface with optional profile fields
+- Updated `UserCreateInput` to include: firstName, lastName, phoneNumber, tkid, organizationId, clubId
+- Updated `AuthResponse` to return profile fields
+
+**`src/models/user.model.ts`**
+- Updated `create()` method to insert and return new profile fields
+- Updated `findById()` method to return profile fields
+
+**`src/controllers/auth.controller.ts`**
+- Updated `register()` to accept and process new fields
+- Creates `club_members` entry if `clubId` is provided during registration
+- All auth endpoints (`register`, `login`, `me`) now return profile fields
+
+**`src/routes/auth.routes.ts`**
+- Added optional validation for all new registration fields
+- Validates field lengths and types appropriately
+
+**`services/api.ts` (Frontend)**
+- Fixed type conversion for `organizationId` and `clubId` (strings → numbers)
+- Handles invalid number conversions gracefully
+
+**Status:** Backend ready to accept expanded registration. Migration needs to be applied: `npm run migrate:up`
+
+### December 21, 2025 (continued)
+**ESLint Setup for Both Projects**
+
+Implemented comprehensive ESLint configuration for code quality enforcement:
+
+**CaridaTracker-api (Backend):**
+- Created `eslint.config.mjs` using ESLint 9 flat config format
+- Configured for TypeScript + Node.js + Express
+- Added dependencies to `package.json`:
+  - `eslint` (^9.25.0)
+  - `@eslint/js` (^9.25.0)
+  - `@typescript-eslint/eslint-plugin` (^8.0.0)
+  - `@typescript-eslint/parser` (^8.0.0)
+  - `typescript-eslint` (^8.0.0)
+- Added scripts: `npm run lint` and `npm run lint:fix`
+- Created `.eslintignore` file
+- Rules enforce TypeScript best practices, code quality, and consistent style
+
+**CaridaTracker (Frontend):**
+- Enhanced existing `eslint.config.js` with additional rules
+- Uses `eslint-config-expo` for React Native/Expo
+- Added script: `npm run lint:fix` (lint already existed)
+- Created `.eslintignore` file
+- Rules enforce React/React Native best practices and code quality
+
+**Documentation:**
+- Added ESLint sections to both README.md files
+- Includes instructions for running linting and auto-fix
+- Documents configuration and best practices
+
+**Next Step:** Install ESLint dependencies in WSL for CaridaTracker-api project
+
+### December 21, 2025 (continued)
+**Organizations and Clubs API Implementation**
+
+Created complete API endpoints for organizations and clubs:
+
+**Backend Files Created:**
+
+**`src/types/index.ts`**
+- Added `Organization` interface
+- Added `Club` interface
+- Added `ClubWithOrganization` interface
+
+**`src/models/organization.model.ts`**
+- `findAll()` - Get all organizations
+- `findById()` - Get organization by ID
+
+**`src/models/club.model.ts`**
+- `findAll()` - Get all clubs
+- `findByOrganizationId()` - Get clubs by organization
+- `findById()` - Get club by ID
+- `findByIdWithOrganization()` - Get club with organization details
+
+**`src/controllers/organization.controller.ts`**
+- `getAll()` - GET /api/organizations
+- `getById()` - GET /api/organizations/:id
+
+**`src/controllers/club.controller.ts`**
+- `getAll()` - GET /api/clubs
+- `getByOrganization()` - GET /api/clubs/organization/:organizationId
+- `getById()` - GET /api/clubs/:id
+
+**`src/routes/organization.routes.ts`**
+- Registered organization routes
+
+**`src/routes/club.routes.ts`**
+- Registered club routes
+
+**`src/app.ts`**
+- Registered `/api/organizations` and `/api/clubs` routes
+
+**Frontend Files Updated:**
+
+**`services/api.ts`**
+- Added `Organization` and `Club` interfaces
+- Added `organizationApi` with `getAll()` and `getById()` methods
+- Added `clubApi` with `getAll()`, `getByOrganization()`, and `getById()` methods
+
+**`app/register.tsx`**
+- Removed hardcoded organizations and clubs data
+- Added state management for organizations and clubs
+- Added `useEffect` hooks to fetch organizations on mount
+- Added `useEffect` hook to fetch clubs when organization changes
+- Added loading states for organizations and clubs
+- Added error handling for API calls
+- Dropdowns now populate from real API data
+
+**Status:** Organizations and Clubs API complete. Frontend connected and working. Ready for seed data.
+
+### December 21, 2025 (continued)
+**Required Organization and Club Fields**
+
+Made organization and club selection required for registration:
+
+**Backend Changes:**
+
+**`src/routes/auth.routes.ts`**
+- Changed `organizationId` and `clubId` from `.optional()` to `.notEmpty()` (required)
+- Added validation error messages
+
+**`src/controllers/auth.controller.ts`**
+- Added validation to ensure both `organizationId` and `clubId` are provided
+- Validates that club belongs to the specified organization before creating user
+- Always creates club membership (no longer conditional since it's required)
+- Improved error handling for club membership creation
+
+**Frontend Changes:**
+
+**`app/register.tsx`**
+- Added `organizationId` and `clubId` to required field validation
+- Updated labels to show `*` (Organization *, Club *)
+- Club dropdown is disabled until organization is selected
+- Updated Dropdown component to show helpful message when disabled
+- Added specific error messages for missing organization/club
+
+**User Experience:**
+- Club dropdown is greyed out and disabled until organization is selected
+- Club dropdown automatically populates with clubs for selected organization
+- Clear visual feedback for required fields
+- Validation prevents submission without both fields
+
+### December 21, 2025 (continued)
+**Login with Username or Email**
+
+Updated login to accept either username or email address:
+
+**Backend Changes:**
+
+**`src/models/user.model.ts`**
+- Added `findByUsername()` method
+- Added `findByEmailOrUsername()` method that searches both email and username fields
+
+**`src/types/index.ts`**
+- Updated `UserLoginInput` interface: changed `email` to `emailOrUsername`
+
+**`src/routes/auth.routes.ts`**
+- Updated login validation: changed from `email` (with email format validation) to `emailOrUsername` (requires non-empty string)
+- Removed email format requirement to allow username input
+
+**`src/controllers/auth.controller.ts`**
+- Updated login method to use `emailOrUsername` instead of `email`
+- Uses `findByEmailOrUsername()` method to search both fields
+- Updated error message to "Invalid email/username or password"
+
+**Frontend Changes:**
+
+**`app/login.tsx`**
+- Changed state variable from `email` to `emailOrUsername`
+- Updated label to "Email or Username"
+- Added placeholder: "Enter your email or username"
+- Removed `keyboardType="email-address"` to allow both formats
+- Updated validation message
+
+**`services/api.ts`**
+- Updated `login()` method parameter from `email` to `emailOrUsername`
+- Sends `emailOrUsername` in request body
+
+**`contexts/AuthContext.tsx`**
+- Updated `login()` method signature to accept `emailOrUsername` instead of `email`
+
+**Status:** Users can now log in with either their email address or username, providing more flexibility.
+
+### December 21, 2025 (continued)
+**Seed Data Migration for Organizations and Clubs**
+
+Created seed data migration to populate initial organizations and clubs:
+
+**Migration File:** `1766342268000_seed-organizations-and-clubs.js`
+
+**Organizations Created:**
+1. 501st Legion - Worldwide Star Wars costuming organization
+2. Rebel Legion - Focused on heroes and good guys
+3. Mandalorian Mercs - Dedicated to Mandalorian culture
+4. Droid Builders - For building astromech droids and robots
+5. Jedi Sith Alliance - Force-wielding characters
+
+**Clubs Created:**
+
+**501st Legion:**
+- Garrison Carida (Pennsylvania)
+- Starkiller (USA) - Testing purposes
+
+**Rebel Legion:**
+- Kyber Base (Pennsylvania)
+- Ghost Base (USA) - Testing purposes
+
+**Mandalorian Mercs:**
+- Mav Oya'la Clan (Pennsylvania)
+
+**Droid Builders:**
+- Mid Atlantic Droid and Prop Builders (Mid-Atlantic)
+
+**Jedi Sith Alliance:**
+- Central PA Jedi Sith Alliance (Central Pennsylvania)
+
+**Features:**
+- Uses `WHERE NOT EXISTS` to allow safe re-running of migration
+- Includes descriptions and locations for all organizations and clubs
+- `down()` migration properly removes all seed data
+- Handles SQL escaping for apostrophes (e.g., "Mav Oya'la Clan")
+- Multiple clubs per organization for testing dropdown functionality
+
+**Status:** Seed data migration ready. Registration will be fully functional once migration is applied with `npm run migrate:up` in WSL.

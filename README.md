@@ -35,6 +35,39 @@ npm run reset-project
 
 This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
+## Code Quality & Linting
+
+This project uses ESLint for code quality and consistency. ESLint is configured for React Native/Expo with recommended rules for mobile development.
+
+### Running ESLint
+
+Check for linting errors:
+
+```bash
+npm run lint
+```
+
+Auto-fix linting errors where possible:
+
+```bash
+npm run lint:fix
+```
+
+### ESLint Configuration
+
+- Configuration file: `eslint.config.js`
+- Uses `eslint-config-expo` for Expo/React Native best practices
+- Ignored files: `node_modules/`, `.expo/`, generated files
+- Rules enforce:
+  - React/React Native best practices
+  - Code quality standards
+  - Consistent code style (semicolons, quotes, etc.)
+  - React Hooks rules
+
+### Pre-commit Linting
+
+It's recommended to run `npm run lint` before committing code. Consider setting up a pre-commit hook (e.g., with husky) to automatically run linting.
+
 ## Learn more
 
 To learn more about developing your project with Expo, look at the following resources:

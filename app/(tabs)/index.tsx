@@ -1,51 +1,87 @@
-import { StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { ThemedText } from '@/components/themed-text';
+import { StyleSheet, ScrollView, View } from 'react-native';
+import { Text, Button, Card, Surface, SegmentedButtons } from 'react-native-paper';
 import { ThemedView } from '@/components/themed-view';
 import { useRouter } from 'expo-router';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTheme, ThemeName, themeDisplayNames } from '@/contexts/ThemeContext';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { logout, user } = useAuth();
+  const { themeName, setTheme, colors } = useTheme();
 
-  const handleLogout = () => {
-    // TODO: Implement actual logout logic (clear tokens, user data, etc.)
-    console.log('Logging out...');
+  const handleLogout = async () => {
+    await logout();
     router.replace('/login');
   };
 
+  const themeButtons = [
+    { value: 'lightSide', label: 'Light Side', icon: 'white-balance-sunny' },
+    { value: 'darkSide', label: 'Dark Side', icon: 'death-star-variant' },
+    { value: 'bountyHunter', label: 'Bounty Hunter', icon: 'shield-account' },
+  ];
+
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       <ThemedView style={styles.content}>
-        <ThemedView style={styles.header}>
-          <ThemedText type="title">CaridaTracker</ThemedText>
-          <ThemedText style={styles.subtitle}>Welcome back!</ThemedText>
-        </ThemedView>
+        <View style={styles.header}>
+          <Text variant="headlineLarge" style={styles.title}>CaridaTracker</Text>
+          <Text variant="bodyLarge" style={styles.subtitle}>
+            Welcome back{user ? `, ${user.username}` : ''}!
+          </Text>
+        </View>
 
-        <ThemedView style={styles.statsContainer}>
-          <ThemedView style={styles.statCard}>
-            <ThemedText type="subtitle">0</ThemedText>
-            <ThemedText style={styles.statLabel}>Total Tracks</ThemedText>
-          </ThemedView>
+        <View style={styles.statsContainer}>
+          <Card style={[styles.statCard, { backgroundColor: `${colors.primary}15` }]}>
+            <Card.Content style={styles.statCardContent}>
+              <Text variant="headlineMedium" style={[styles.statNumber, { color: colors.primary }]}>0</Text>
+              <Text variant="bodySmall" style={styles.statLabel}>Total Troops</Text>
+            </Card.Content>
+          </Card>
 
-          <ThemedView style={styles.statCard}>
-            <ThemedText type="subtitle">0</ThemedText>
-            <ThemedText style={styles.statLabel}>This Week</ThemedText>
-          </ThemedView>
-        </ThemedView>
+          <Card style={[styles.statCard, { backgroundColor: `${colors.primary}15` }]}>
+            <Card.Content style={styles.statCardContent}>
+              <Text variant="headlineMedium" style={[styles.statNumber, { color: colors.primary }]}>0</Text>
+              <Text variant="bodySmall" style={styles.statLabel}>This Week</Text>
+            </Card.Content>
+          </Card>
+        </View>
 
-        <ThemedView style={styles.section}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>Recent Activity</ThemedText>
-          <ThemedView style={styles.emptyState}>
-            <ThemedText style={styles.emptyText}>No activity yet</ThemedText>
-            <ThemedText style={styles.emptySubtext}>Start tracking to see your activity here</ThemedText>
-          </ThemedView>
-        </ThemedView>
+        <View style={styles.section}>
+          <Text variant="titleLarge" style={styles.sectionTitle}>Recent Activity</Text>
+          <Surface style={[styles.emptyState, { borderColor: colors.border }]} elevation={0}>
+            <Text variant="bodyLarge" style={styles.emptyText}>No activity yet</Text>
+            <Text variant="bodyMedium" style={styles.emptySubtext}>
+              Start tracking to see your activity here
+            </Text>
+          </Surface>
+        </View>
 
-        <TouchableOpacity
-          style={styles.logoutButton}
+        {/* Theme Selector */}
+        <View style={styles.section}>
+          <Text variant="titleLarge" style={styles.sectionTitle}>Theme</Text>
+          <Text variant="bodyMedium" style={styles.themeDescription}>
+            Choose your allegiance
+          </Text>
+          <SegmentedButtons
+            value={themeName}
+            onValueChange={(value) => setTheme(value as ThemeName)}
+            buttons={themeButtons}
+            style={styles.themeSelector}
+          />
+          <Text variant="bodySmall" style={styles.currentTheme}>
+            Current: {themeDisplayNames[themeName]}
+          </Text>
+        </View>
+
+        <Button
+          mode="outlined"
           onPress={handleLogout}
+          style={[styles.logoutButton, { borderColor: colors.error }]}
+          textColor={colors.error}
         >
-          <ThemedText style={styles.logoutButtonText}>Logout</ThemedText>
-        </TouchableOpacity>
+          Logout
+        </Button>
       </ThemedView>
     </ScrollView>
   );
@@ -62,6 +98,9 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     marginTop: 16,
   },
+  title: {
+    fontWeight: 'bold',
+  },
   subtitle: {
     opacity: 0.7,
     marginTop: 4,
@@ -73,50 +112,52 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    padding: 20,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+  },
+  statCardContent: {
     alignItems: 'center',
+    paddingVertical: 16,
+  },
+  statNumber: {
+    fontWeight: 'bold',
   },
   statLabel: {
-    marginTop: 8,
-    fontSize: 12,
+    marginTop: 4,
     opacity: 0.7,
   },
   section: {
     marginBottom: 32,
   },
   sectionTitle: {
+    marginBottom: 8,
+    fontWeight: '600',
+  },
+  themeDescription: {
+    opacity: 0.7,
     marginBottom: 16,
+  },
+  themeSelector: {
+    marginBottom: 8,
+  },
+  currentTheme: {
+    textAlign: 'center',
+    opacity: 0.6,
+    marginTop: 8,
   },
   emptyState: {
     padding: 32,
     alignItems: 'center',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.1)',
     borderStyle: 'dashed',
+    backgroundColor: 'transparent',
   },
   emptyText: {
-    fontSize: 16,
     marginBottom: 4,
   },
   emptySubtext: {
-    fontSize: 14,
     opacity: 0.5,
   },
   logoutButton: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#FF3B30',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
     marginTop: 16,
-  },
-  logoutButtonText: {
-    color: '#FF3B30',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });
