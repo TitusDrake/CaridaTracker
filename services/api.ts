@@ -1,7 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
 // API base URL - update this for production
-const API_BASE_URL = 'http://localhost:3000/api';
+// Use WSL IP for Android emulator (10.0.2.2 doesn't reach WSL2), localhost for iOS simulator/web
+const WSL_IP = '172.28.199.187'; // Run `hostname -I` in WSL to get this
+const API_BASE_URL = __DEV__
+  ? (Platform.OS === 'android' ? `http://${WSL_IP}:3000/api` : 'http://localhost:3000/api')
+  : 'https://your-production-api.com/api';
 
 // Storage keys
 export const TOKEN_KEY = '@CaridaTracker:token';
@@ -108,6 +113,48 @@ export const getStoredUser = async (): Promise<User | null> => {
   }
 };
 
+// Generic fetch wrapper for public endpoints (no auth required)
+const fetchPublic = async (
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<Response> => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string>),
+  };
+
+  const url = `${API_BASE_URL}${endpoint}`;
+  console.log('fetchPublic - URL:', url);
+  console.log('fetchPublic - API_BASE_URL:', API_BASE_URL);
+  console.log('fetchPublic - endpoint:', endpoint);
+
+  // Add timeout using AbortController
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    console.log('fetchPublic - Request timed out after 10 seconds');
+    controller.abort();
+  }, 10000);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    console.log('fetchPublic - Response received:', response.status);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.error('fetchPublic - Request aborted (timeout)');
+      throw new Error('Request timed out. Is the backend server running and accessible?');
+    }
+    console.error('fetchPublic - Fetch error:', error);
+    throw error;
+  }
+};
+
 // Generic fetch wrapper with auth
 const fetchWithAuth = async (
   endpoint: string,
@@ -115,9 +162,9 @@ const fetchWithAuth = async (
 ): Promise<Response> => {
   const token = await getToken();
 
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...(options.headers as Record<string, string>),
   };
 
   if (token) {
@@ -214,24 +261,40 @@ export const authApi = {
 
 // Organizations API calls
 export const organizationApi = {
-  // Get all organizations
+  // Get all organizations (public endpoint - no auth required)
   getAll: async (): Promise<Organization[]> => {
-    const response = await fetchWithAuth('/organizations', {
-      method: 'GET',
-    });
+    try {
+      const url = `${API_BASE_URL}/organizations`;
+      console.log('Fetching organizations from:', url);
+      
+      const response = await fetchPublic('/organizations', {
+        method: 'GET',
+      });
 
-    const data = await response.json();
+      console.log('Response status:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to fetch organizations' }));
+        console.error('Error response:', errorData);
+        throw errorData as ApiError;
+      }
 
-    if (!response.ok) {
-      throw data as ApiError;
+      const data = await response.json();
+      console.log('Organizations data received:', data);
+      return data as Organization[];
+    } catch (error) {
+      console.error('Error in organizationApi.getAll:', error);
+      if (error instanceof TypeError && error.message === 'Network request failed') {
+        console.error('Network error - check if backend is running and accessible');
+        console.error('API_BASE_URL:', API_BASE_URL);
+      }
+      throw error;
     }
-
-    return data as Organization[];
   },
 
-  // Get organization by ID
+  // Get organization by ID (public endpoint)
   getById: async (id: number): Promise<Organization> => {
-    const response = await fetchWithAuth(`/organizations/${id}`, {
+    const response = await fetchPublic(`/organizations/${id}`, {
       method: 'GET',
     });
 
@@ -247,9 +310,9 @@ export const organizationApi = {
 
 // Clubs API calls
 export const clubApi = {
-  // Get all clubs
+  // Get all clubs (public endpoint - no auth required)
   getAll: async (): Promise<Club[]> => {
-    const response = await fetchWithAuth('/clubs', {
+    const response = await fetchPublic('/clubs', {
       method: 'GET',
     });
 
@@ -262,24 +325,29 @@ export const clubApi = {
     return data as Club[];
   },
 
-  // Get clubs by organization
+  // Get clubs by organization (public endpoint - no auth required)
   getByOrganization: async (organizationId: number): Promise<Club[]> => {
-    const response = await fetchWithAuth(`/clubs/organization/${organizationId}`, {
-      method: 'GET',
-    });
+    try {
+      const response = await fetchPublic(`/clubs/organization/${organizationId}`, {
+        method: 'GET',
+      });
 
-    const data = await response.json();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to fetch clubs' }));
+        throw errorData as ApiError;
+      }
 
-    if (!response.ok) {
-      throw data as ApiError;
+      const data = await response.json();
+      return data as Club[];
+    } catch (error) {
+      console.error('Error in clubApi.getByOrganization:', error);
+      throw error;
     }
-
-    return data as Club[];
   },
 
-  // Get club by ID
+  // Get club by ID (public endpoint)
   getById: async (id: number): Promise<Club> => {
-    const response = await fetchWithAuth(`/clubs/${id}`, {
+    const response = await fetchPublic(`/clubs/${id}`, {
       method: 'GET',
     });
 

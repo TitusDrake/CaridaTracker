@@ -1,4 +1,4 @@
-# CaridaTracker Development Session - December 22, 2025
+# CaridaTracker Development Session - [DATE]
 
 > **⚠️ CRITICAL: Copy this section to every new session file**
 > 
@@ -342,70 +342,12 @@ CORS_ORIGIN=http://localhost:8081
 
 ## Next Session Priorities
 
-### Security & Validation (HIGH PRIORITY)
-1. **Input Validation & Security**
-   - Implement comprehensive input validation to prevent SQL injection and XSS attacks
-   - Add server-side validation for all user inputs
-   - Sanitize all inputs before database operations
-   - Validate data types and formats on both frontend and backend
-
-2. **Password Security**
-   - Verify password hashing with bcrypt is properly implemented
-   - Ensure passwords are never stored in plain text
-   - Review password storage and transmission security
-   - Implement password strength requirements (8+ chars, 1 number, 1 symbol, 1 capital)
-
-3. **Username/Email Uniqueness**
-   - Ensure backend properly validates unique usernames and emails
-   - Return clear error messages: "Username already in use" / "Email already in use"
-   - Add database constraints if not already present
-   - Handle race conditions in registration
-
-4. **Field-Specific Validation**
-   - Phone number: Industry standard format validation
-   - Email: RFC-compliant email validation
-   - TKID: 5-digit number only (e.g., "12345")
-   - Names: Letters only (with support for hyphens, apostrophes where appropriate)
-   - Password: Enforce complexity rules (8+ chars, 1 number, 1 symbol, 1 capital letter)
-
-5. **Email Verification**
-   - Implement email verification flow for new account creation
-   - Send verification email on registration
-   - Require email verification before account activation
-   - Add email verification status to user model
-
-6. **Forgot Password Functionality**
-   - Implement password reset flow
-   - Generate secure reset tokens
-   - Send password reset emails
-   - Create reset password endpoint and UI
-
-7. **Spam Prevention**
-   - Research OAuth options (Google, etc.) for spam prevention
-   - Evaluate Cloudflare or similar services for rate limiting and bot protection
-   - Implement CAPTCHA if needed
-   - Review React Native built-in security features
-   - Consider rate limiting on registration endpoint
-
-**Note on OAuth/Cloudflare:**
-- **OAuth (Google, etc.)**: Not strictly necessary for spam prevention, but can reduce fake accounts by requiring verified email/identity. Useful for user convenience but adds complexity.
-- **Cloudflare**: Provides DDoS protection, rate limiting, bot detection, and can help prevent automated spam registrations. Consider for production deployment.
-- **React Native Security**: React Native itself doesn't have built-in spam prevention - this must be implemented at the API level.
-- **Recommended Approach**: 
-  - Start with server-side rate limiting (already partially implemented with express-rate-limit)
-  - Add CAPTCHA for registration if spam becomes an issue
-  - Consider Cloudflare for production if traffic/attacks warrant it
-  - OAuth is optional - nice-to-have for user convenience, not required for security
-
-### Additional Security Considerations
-- Review JWT token expiration and refresh strategy
-- Implement CSRF protection
-- Add request rate limiting (already partially implemented)
-- Review and harden CORS configuration for production
-- Implement account lockout after failed login attempts
-- Add logging for security events (failed logins, registration attempts)
+> **What to work on next**
+> 
+> List priorities for the next session
 
 ---
 
-**Session Date:** December 22, 2025
-**Session Status:** In Progress
+**Session Date:** [DATE]
+**Session Status:** [In Progress / Completed]
+

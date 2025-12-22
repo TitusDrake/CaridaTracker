@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { StyleSheet, KeyboardAvoidingView, Platform, ScrollView, View, ActivityIndicator } from 'react-native';
-import { TextInput, Button, Text, HelperText, Menu, Divider } from 'react-native-paper';
+import { StyleSheet, KeyboardAvoidingView, Platform, ScrollView, View, ActivityIndicator, TouchableOpacity, Modal, FlatList } from 'react-native';
+import { TextInput, Button, Text, HelperText, List, Divider, Portal, Surface } from 'react-native-paper';
 import { ThemedView } from '@/components/themed-view';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
-import { organizationApi, clubApi, Organization, Club } from '@/services/api';
+import { organizationApi, clubApi } from '@/services/api';
+import { useTheme } from '@/contexts/ThemeContext';
 
-// Dropdown component using Paper's Menu
+// Dropdown component using Modal
 function Dropdown({
   label,
   value,
@@ -21,45 +22,82 @@ function Dropdown({
   disabled?: boolean;
 }) {
   const [visible, setVisible] = useState(false);
+  const { colors } = useTheme();
   const selectedOption = options.find(opt => opt.id === value);
-  const displayValue = disabled && !value 
-    ? 'Please select an organization first' 
-    : (selectedOption?.name || '');
+  const displayValue = disabled && !value
+    ? 'Select organization first'
+    : (selectedOption?.name || 'Select...');
+
+  const openModal = () => {
+    if (!disabled) {
+      setVisible(true);
+    }
+  };
 
   return (
-    <Menu
-      visible={visible}
-      onDismiss={() => setVisible(false)}
-      anchor={
-        <TextInput
-          label={label}
-          value={displayValue}
-          mode="outlined"
-          editable={false}
-          disabled={disabled}
-          style={styles.input}
-          placeholder={disabled && !value ? 'Select organization first' : undefined}
-          right={<TextInput.Icon icon="chevron-down" />}
-          onPressIn={() => !disabled && setVisible(true)}
-        />
-      }
-      anchorPosition="bottom"
-      style={styles.menuStyle}
-    >
-      {options.map((option, index) => (
-        <View key={option.id || `empty-${index}`}>
-          <Menu.Item
-            onPress={() => {
-              onSelect(option.id);
-              setVisible(false);
-            }}
-            title={option.name}
-            style={option.id === value ? styles.selectedMenuItem : undefined}
+    <View>
+      <TouchableOpacity onPress={openModal} activeOpacity={0.7} disabled={disabled}>
+        <View pointerEvents="none">
+          <TextInput
+            label={label}
+            value={displayValue}
+            mode="outlined"
+            editable={false}
+            disabled={disabled}
+            style={styles.input}
+            right={<TextInput.Icon icon="chevron-down" />}
           />
-          {index < options.length - 1 && <Divider />}
         </View>
-      ))}
-    </Menu>
+      </TouchableOpacity>
+
+      <Portal>
+        <Modal
+          visible={visible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setVisible(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setVisible(false)}
+          >
+            <Surface style={[styles.modalContent, { backgroundColor: colors.surface }]} elevation={4}>
+              <Text variant="titleMedium" style={styles.modalTitle}>{label}</Text>
+              <Divider />
+              <FlatList
+                data={options}
+                keyExtractor={(item, index) => item.id || `empty-${index}`}
+                renderItem={({ item, index }) => (
+                  <TouchableOpacity
+                    onPress={() => {
+                      onSelect(item.id);
+                      setVisible(false);
+                    }}
+                    style={[
+                      styles.optionItem,
+                      item.id === value && { backgroundColor: `${colors.primary}20` }
+                    ]}
+                  >
+                    <Text
+                      variant="bodyLarge"
+                      style={item.id === value ? { color: colors.primary, fontWeight: '600' } : undefined}
+                    >
+                      {item.name}
+                    </Text>
+                    {item.id === value && (
+                      <List.Icon icon="check" color={colors.primary} />
+                    )}
+                  </TouchableOpacity>
+                )}
+                ItemSeparatorComponent={() => <Divider />}
+                style={styles.optionsList}
+              />
+            </Surface>
+          </TouchableOpacity>
+        </Modal>
+      </Portal>
+    </View>
   );
 }
 
@@ -96,14 +134,20 @@ export default function RegisterScreen() {
     const fetchOrganizations = async () => {
       try {
         setIsLoadingOrgs(true);
+        setError(''); // Clear any previous errors
+        console.log('Fetching organizations...');
         const orgs = await organizationApi.getAll();
+        console.log('Organizations fetched:', orgs);
         setOrganizations([
           { id: '', name: 'Select Organization' },
           ...orgs.map(org => ({ id: org.id.toString(), name: org.name })),
         ]);
       } catch (err) {
         console.error('Error fetching organizations:', err);
-        setError('Failed to load organizations. Please try again.');
+        const errorMessage = err instanceof Error 
+          ? err.message 
+          : 'Failed to load organizations. Please ensure the backend API is running.';
+        setError(errorMessage);
       } finally {
         setIsLoadingOrgs(false);
       }
@@ -128,7 +172,12 @@ export default function RegisterScreen() {
           { id: '', name: 'Select Club' },
           ...clubList.map(club => ({ id: club.id.toString(), name: club.name })),
         ]);
-        setClubId(''); // Reset club selection when organization changes
+        // Auto-select first club if in dev mode and filling test data
+        if (__DEV__ && clubList.length > 0) {
+          setClubId(clubList[0].id.toString());
+        } else {
+          setClubId(''); // Reset club selection when organization changes
+        }
       } catch (err) {
         console.error('Error fetching clubs:', err);
         setError('Failed to load clubs. Please try again.');
@@ -184,6 +233,29 @@ export default function RegisterScreen() {
     setClubId(''); // Reset club when organization changes
   };
 
+  const fillTestData = () => {
+    // Random data for fields that need to be unique
+    const randomNum = Math.floor(Math.random() * 10000);
+    const timestamp = Date.now().toString().slice(-6);
+
+    // Fixed username and password for easy testing
+    setUsername('testuser');
+    setEmail(`test${randomNum}@example.com`);
+    setPassword('password');
+    setConfirmPassword('password');
+    setFirstName('Test');
+    setLastName(`User${randomNum}`);
+    setPhoneNumber('555-123-4567');
+    setTkid(`TK-${timestamp}`);
+
+    // Set first available organization and club if available
+    if (organizations.length > 1) {
+      const firstOrg = organizations[1]; // Skip the "Select Organization" option
+      setOrganizationId(firstOrg.id);
+      // Club will be set automatically when organization changes via useEffect
+    }
+  };
+
   const handleRegister = async () => {
     setError('');
 
@@ -216,12 +288,14 @@ export default function RegisterScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.container}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={true}
+        bounces={true}
       >
         <ThemedView style={styles.content}>
           <Text variant="headlineLarge" style={styles.title}>CaridaTracker</Text>
@@ -232,6 +306,18 @@ export default function RegisterScreen() {
               {error}
             </HelperText>
           ) : null}
+
+          {__DEV__ && (
+            <Button
+              mode="outlined"
+              onPress={fillTestData}
+              disabled={isLoading || isLoadingOrgs}
+              style={styles.testDataButton}
+              icon="content-copy"
+            >
+              Fill Test Data
+            </Button>
+          )}
 
           <View style={styles.formContainer}>
             {/* Account Information Section */}
@@ -416,11 +502,9 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   content: {
-    flex: 1,
-    justifyContent: 'center',
     padding: 24,
-    paddingTop: 48,
-    paddingBottom: 48,
+    paddingTop: 60,
+    paddingBottom: 60,
   },
   title: {
     textAlign: 'center',
@@ -448,11 +532,35 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: 'transparent',
   },
-  menuStyle: {
-    marginTop: 60,
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
   },
-  selectedMenuItem: {
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+  modalContent: {
+    width: '100%',
+    maxHeight: '60%',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  modalTitle: {
+    padding: 16,
+    fontWeight: '600',
+  },
+  optionsList: {
+    maxHeight: 350,
+  },
+  optionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  selectedItem: {
+    // backgroundColor set dynamically
   },
   requiredNote: {
     opacity: 0.6,
@@ -486,5 +594,9 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     opacity: 0.7,
+  },
+  testDataButton: {
+    marginBottom: 16,
+    borderStyle: 'dashed',
   },
 });
