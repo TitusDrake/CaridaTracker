@@ -2,10 +2,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 // API base URL - update this for production
-// Use WSL IP for Android emulator (10.0.2.2 doesn't reach WSL2), localhost for iOS simulator/web
-const WSL_IP = '172.28.199.187'; // Run `hostname -I` in WSL to get this
+// For Android emulator: use 10.0.2.2 (alias for host machine's localhost)
+// Requires port forwarding from Windows to WSL if backend runs in WSL:
+//   netsh interface portproxy add v4tov4 listenport=3000 listenaddress=0.0.0.0 connectport=3000 connectaddress=$(wsl hostname -I)
 const API_BASE_URL = __DEV__
-  ? (Platform.OS === 'android' ? `http://${WSL_IP}:3000/api` : 'http://localhost:3000/api')
+  ? (Platform.OS === 'android' ? 'http://10.0.2.2:3000/api' : 'http://localhost:3000/api')
   : 'https://your-production-api.com/api';
 
 // Storage keys

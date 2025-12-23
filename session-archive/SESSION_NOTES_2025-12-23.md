@@ -1,4 +1,4 @@
-# CaridaTracker Development Session - [DATE]
+# CaridaTracker Development Session - December 23, 2025
 
 > **⚠️ CRITICAL: Copy this section to every new session file**
 >
@@ -246,23 +246,17 @@ The Android emulator cannot directly reach WSL2's network. Port forwarding is re
 
 **Setup (run in Windows PowerShell as Administrator):**
 ```powershell
-# Get current WSL IP
-wsl hostname -I
-
-# Add port forwarding rule (replace IP if changed)
-netsh interface portproxy add v4tov4 listenport=3000 listenaddress=0.0.0.0 connectport=3000 connectaddress=<WSL_IP>
+# Add port forwarding rule
+netsh interface portproxy add v4tov4 listenport=3000 listenaddress=0.0.0.0 connectport=3000 connectaddress=172.28.199.187
 
 # Allow through firewall (if needed)
 netsh advfirewall firewall add rule name="CaridaTracker API" dir=in action=allow protocol=TCP localport=3000
 
 # Verify port forwarding is set up
 netsh interface portproxy show all
-
-# Remove port forwarding (if needed)
-netsh interface portproxy delete v4tov4 listenport=3000 listenaddress=0.0.0.0
 ```
 
-**Note:** The WSL IP may change on restart. Check with `wsl hostname -I` and update the port forwarding rule.
+**Note:** The WSL IP (172.28.199.187) may change on restart. Check with `wsl hostname -I`.
 
 ### Environment Variables (Backend .env)
 ```env
@@ -350,12 +344,12 @@ CORS_ORIGIN=http://localhost:8081
 - ✅ Authentication context and JWT token storage
 - ✅ Authentication guard (redirects based on auth state)
 - ✅ "Fill Test Data" button for registration (dev mode only)
-- ✅ Bottom tab navigation (Home, Troops, My Clubs, Profile)
-- ✅ Search screen with troops/people toggle
-- ✅ Troop Details screen (placeholder)
-- ✅ Club Details screen (placeholder)
-- ✅ Search icon in header (left side, on tab screens only)
-- ✅ Theme selector on Profile screen
+- ✅ **Bottom tab navigation (Home, Troops, My Clubs, Profile)**
+- ✅ **Search screen with troops/people toggle**
+- ✅ **Troop Details screen (placeholder)**
+- ✅ **Club Details screen (placeholder)**
+- ✅ **Search icon in header (left side, on tab screens only)**
+- ✅ **Theme selector moved to Profile screen**
 
 ### Backend
 - ✅ JWT authentication
@@ -369,11 +363,63 @@ CORS_ORIGIN=http://localhost:8081
 
 ---
 
-## Current Session Work
+## Current Session Work (December 23, 2025)
 
-> **Session-specific work goes here**
->
-> Document what was accomplished in this session, files changed, issues encountered, etc.
+### Completed This Session
+
+1. **Created Walking Skeleton UI**
+   - Added 4 bottom tabs: Home, Troops, My Clubs, Profile
+   - Created placeholder screens for each tab
+   - Updated `app/(tabs)/_layout.tsx` with new tab configuration
+   - Added new icon mappings in `components/ui/icon-symbol.tsx`
+
+2. **New Screen Files Created:**
+   - `app/(tabs)/troops.tsx` - Troops list (no FAB, troop creation is admin-only)
+   - `app/(tabs)/my-clubs.tsx` - User's club memberships
+   - `app/(tabs)/profile.tsx` - Profile info + theme selector + logout
+   - `app/search.tsx` - Search for troops or people
+   - `app/troop/[id].tsx` - Troop details screen
+   - `app/club/[id].tsx` - Club details screen
+
+3. **UI Improvements:**
+   - Moved theme selector from Home to Profile screen
+   - Cleaned up Home screen (removed logout, simplified layout)
+   - Added search icon to header (left side) on tab screens
+   - Search icon navigates to dedicated search screen
+
+4. **VS Code Configuration:**
+   - Created `.vscode/tasks.json` with tasks for starting frontend/backend
+   - Created `.vscode/launch.json` for debugging
+   - Tasks: "Start Frontend (Expo)", "Start Backend (API)", "Start All"
+
+5. **Networking Setup for Android Emulator:**
+   - Updated `services/api.ts` to use `10.0.2.2` for Android emulator
+   - Documented port forwarding setup for WSL → Windows → Android
+
+### Known Issues (Carry to Next Session)
+
+**Android Emulator Network Connectivity:**
+- The Android emulator cannot reach the API running in WSL
+- Port forwarding was set up: `netsh interface portproxy add v4tov4 listenport=3000 listenaddress=0.0.0.0 connectport=3000 connectaddress=172.28.199.187`
+- Firewall rule may also be needed
+- Still getting "Network request failed" errors when app tries to fetch organizations
+- Need to troubleshoot further next session
+
+### Files Modified This Session
+- `app/(tabs)/_layout.tsx` - Updated tabs, added search button in header
+- `app/(tabs)/index.tsx` - Cleaned up, removed theme selector
+- `components/ui/icon-symbol.tsx` - Added new icon mappings
+- `services/api.ts` - Updated to use 10.0.2.2 for Android
+
+### Files Created This Session
+- `app/(tabs)/troops.tsx`
+- `app/(tabs)/my-clubs.tsx`
+- `app/(tabs)/profile.tsx`
+- `app/search.tsx`
+- `app/troop/[id].tsx`
+- `app/club/[id].tsx`
+- `.vscode/tasks.json`
+- `.vscode/launch.json`
 
 ---
 
@@ -389,7 +435,7 @@ CORS_ORIGIN=http://localhost:8081
 1. Wire up navigation between screens (e.g., tap troop → go to details)
 2. Add mock data to screens for visual testing
 
-### Security & Validation
+### Security & Validation (Original Priority)
 1. Input Validation & Security
 2. Password Security
 3. Username/Email Uniqueness
@@ -400,5 +446,5 @@ CORS_ORIGIN=http://localhost:8081
 
 ---
 
-**Session Date:** [DATE]
-**Session Status:** [In Progress / Completed]
+**Session Date:** December 23, 2025
+**Session Status:** Completed (with networking issue outstanding)

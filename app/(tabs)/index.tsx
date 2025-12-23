@@ -1,25 +1,12 @@
 import { StyleSheet, ScrollView, View } from 'react-native';
-import { Text, Button, Card, Surface, SegmentedButtons } from 'react-native-paper';
+import { Text, Card, Surface } from 'react-native-paper';
 import { ThemedView } from '@/components/themed-view';
-import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTheme, ThemeName, themeDisplayNames } from '@/contexts/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function HomeScreen() {
-  const router = useRouter();
-  const { logout, user } = useAuth();
-  const { themeName, setTheme, colors } = useTheme();
-
-  const handleLogout = async () => {
-    await logout();
-    router.replace('/login');
-  };
-
-  const themeButtons = [
-    { value: 'lightSide', label: 'Light Side', icon: 'white-balance-sunny' },
-    { value: 'darkSide', label: 'Dark Side', icon: 'death-star-variant' },
-    { value: 'bountyHunter', label: 'Bounty Hunter', icon: 'shield-account' },
-  ];
+  const { user } = useAuth();
+  const { colors } = useTheme();
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -42,9 +29,19 @@ export default function HomeScreen() {
           <Card style={[styles.statCard, { backgroundColor: `${colors.primary}15` }]}>
             <Card.Content style={styles.statCardContent}>
               <Text variant="headlineMedium" style={[styles.statNumber, { color: colors.primary }]}>0</Text>
-              <Text variant="bodySmall" style={styles.statLabel}>This Week</Text>
+              <Text variant="bodySmall" style={styles.statLabel}>This Year</Text>
             </Card.Content>
           </Card>
+        </View>
+
+        <View style={styles.section}>
+          <Text variant="titleLarge" style={styles.sectionTitle}>Upcoming Troops</Text>
+          <Surface style={[styles.emptyState, { borderColor: colors.border }]} elevation={0}>
+            <Text variant="bodyLarge" style={styles.emptyText}>No upcoming troops</Text>
+            <Text variant="bodyMedium" style={styles.emptySubtext}>
+              Check the Troops tab to find events to attend
+            </Text>
+          </Surface>
         </View>
 
         <View style={styles.section}>
@@ -52,36 +49,10 @@ export default function HomeScreen() {
           <Surface style={[styles.emptyState, { borderColor: colors.border }]} elevation={0}>
             <Text variant="bodyLarge" style={styles.emptyText}>No activity yet</Text>
             <Text variant="bodyMedium" style={styles.emptySubtext}>
-              Start tracking to see your activity here
+              Your recent troop activity will appear here
             </Text>
           </Surface>
         </View>
-
-        {/* Theme Selector */}
-        <View style={styles.section}>
-          <Text variant="titleLarge" style={styles.sectionTitle}>Theme</Text>
-          <Text variant="bodyMedium" style={styles.themeDescription}>
-            Choose your allegiance
-          </Text>
-          <SegmentedButtons
-            value={themeName}
-            onValueChange={(value) => setTheme(value as ThemeName)}
-            buttons={themeButtons}
-            style={styles.themeSelector}
-          />
-          <Text variant="bodySmall" style={styles.currentTheme}>
-            Current: {themeDisplayNames[themeName]}
-          </Text>
-        </View>
-
-        <Button
-          mode="outlined"
-          onPress={handleLogout}
-          style={[styles.logoutButton, { borderColor: colors.error }]}
-          textColor={colors.error}
-        >
-          Logout
-        </Button>
       </ThemedView>
     </ScrollView>
   );
@@ -131,18 +102,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     fontWeight: '600',
   },
-  themeDescription: {
-    opacity: 0.7,
-    marginBottom: 16,
-  },
-  themeSelector: {
-    marginBottom: 8,
-  },
-  currentTheme: {
-    textAlign: 'center',
-    opacity: 0.6,
-    marginTop: 8,
-  },
   emptyState: {
     padding: 32,
     alignItems: 'center',
@@ -156,8 +115,6 @@ const styles = StyleSheet.create({
   },
   emptySubtext: {
     opacity: 0.5,
-  },
-  logoutButton: {
-    marginTop: 16,
+    textAlign: 'center',
   },
 });

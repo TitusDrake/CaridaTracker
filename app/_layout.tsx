@@ -34,6 +34,9 @@ function ThemedApp() {
           <Stack.Screen name="login" options={{ headerShown: false }} />
           <Stack.Screen name="register" options={{ headerShown: false }} />
           <Stack.Screen name="forgot-password" options={{ headerShown: false, title: 'Reset Password' }} />
+          <Stack.Screen name="search" options={{ title: 'Search', headerBackTitle: 'Back' }} />
+          <Stack.Screen name="troop/[id]" options={{ title: 'Troop Details', headerBackTitle: 'Back' }} />
+          <Stack.Screen name="club/[id]" options={{ title: 'Club Details', headerBackTitle: 'Back' }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         </Stack>
         <StatusBar style={colors.isDark ? 'light' : 'dark'} />
