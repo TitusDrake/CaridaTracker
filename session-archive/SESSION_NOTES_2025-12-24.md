@@ -1,4 +1,4 @@
-# CaridaTracker Development Session - [DATE]
+# CaridaTracker Development Session - December 24, 2025
 
 > **⚠️ CRITICAL: Copy this section to every new session file**
 >
@@ -26,7 +26,6 @@ A mobile app for tracking volunteer costuming events ("troops") for multiple Sta
 - **State Management:** React hooks (useState, useContext, etc.)
 - **Styling:** StyleSheet API (React Native)
 - **Package Manager:** npm
-- **Testing:** Jest + React Native Testing Library
 
 **Key Dependencies:**
 - `expo` - Development platform and toolchain
@@ -35,8 +34,6 @@ A mobile app for tracking volunteer costuming events ("troops") for multiple Sta
 - `react-native-paper` - UI component library
 - `@react-native-async-storage/async-storage` - Local storage
 - `typescript` - Type safety
-- `jest`, `jest-expo` - Testing framework
-- `@testing-library/react-native` - Component testing
 
 ### CaridaTracker-api (Backend API)
 - **Runtime:** Node.js (v18+)
@@ -49,7 +46,6 @@ A mobile app for tracking volunteer costuming events ("troops") for multiple Sta
 - **Validation:** express-validator
 - **Security:** Helmet.js, CORS, express-rate-limit
 - **Package Manager:** npm
-- **Testing:** Jest + Supertest
 
 **Key Dependencies:**
 - `express` - Web framework
@@ -64,7 +60,6 @@ A mobile app for tracking volunteer costuming events ("troops") for multiple Sta
 - `typescript` - Type safety
 - `ts-node` - TypeScript execution for development
 - `nodemon` - Auto-restart on file changes
-- `jest`, `supertest` - Testing framework
 
 ---
 
@@ -227,7 +222,6 @@ npm run migrate:down
 - Press `Ctrl+Shift+P` → "Tasks: Run Task"
 - Select "Start All (Frontend + Backend)" to run both
 - Or run individually: "Start Frontend (Expo)" / "Start Backend (API)"
-- Use "Lint → Test → Start" tasks to run quality checks before starting
 
 **Option 2: Manual**
 
@@ -303,7 +297,6 @@ CORS_ORIGIN=http://localhost:8081
 4. **Multi-club attendance:** Users can attend same troop for multiple clubs, gets credit for each
 5. **Migration tool:** node-pg-migrate for database changes (like Gradle)
 6. **Stats tracking:** Per-club stats (not just global user stats)
-7. **Testing:** Jest for both frontend and backend, with comprehensive test coverage
 
 ---
 
@@ -375,8 +368,6 @@ CORS_ORIGIN=http://localhost:8081
 - ✅ Club Details screen (placeholder)
 - ✅ Search icon in header (left side, on tab screens only)
 - ✅ Theme selector on Profile screen
-- ✅ Jest testing infrastructure setup
-- ✅ Initial test files (components, contexts, services)
 
 ### Backend
 - ✅ JWT authentication
@@ -387,29 +378,337 @@ CORS_ORIGIN=http://localhost:8081
 - ✅ Seed data migration for organizations and clubs
 - ✅ ESLint configuration
 - ✅ CORS configuration (allows all origins in dev)
-- ✅ Troops CRUD endpoints
-- ✅ Attendance endpoints (sign up, cancel, list attendees)
-- ✅ Jest + Supertest testing infrastructure
-- ✅ Complete test coverage (6 test suites, 44 tests passing)
-- ✅ VS Code tasks and launch configurations
 
 ---
 
 ## Current Session Work
 
-> **Session-specific work goes here**
->
-> Document what was accomplished in this session, files changed, issues encountered, etc.
+### Completed This Session
+
+1. **Built Attendance API Endpoints** ✅
+   - Created `src/models/attendance.model.ts` with methods:
+     - `signUp()` - Sign up user for a troop under a specific club
+     - `cancel()` - Cancel attendance for a specific troop/user/club combination
+     - `isAttending()` - Check if user is already attending
+     - `getAttendees()` - Get all attendees for a troop with user details
+     - `getUserAttendance()` - Get user's attendance records for a troop
+     - `isClubMember()` - Check if user is a member of a club
+     - `isTroopVisibleToClub()` - Check if troop is visible to a club
+     - `getAttendeeCount()` - Get count of attendees for a troop
+   
+   - Created `src/controllers/attendance.controller.ts` with endpoints:
+     - `POST /api/troops/:id/attend` - Sign up for a troop (requires club_id)
+     - `DELETE /api/troops/:id/attend` - Cancel attendance (requires club_id)
+     - `GET /api/troops/:id/attendees` - List all attendees (admin/member access)
+   
+   - Created `src/routes/attendance.routes.ts` with validation:
+     - Validates troop ID, club_id, and optional notes
+     - All routes require authentication
+   
+   - Registered attendance routes in `src/app.ts` under `/api/troops`
+
+2. **Fixed Attendance Tests** ✅
+   - Fixed TypeScript errors in `src/__tests__/attendance.test.ts`:
+     - Removed unused `secondClubMemberToken` variable
+     - All variables now properly used
+   
+   - Updated `src/__tests__/helpers.ts`:
+     - Added proper TypeScript interfaces (`CreateTestUserOptions`, `TestUserResult`)
+     - Fixed `testRequest()` to be a function (was causing TypeScript errors)
+     - Added `isAdmin` support to `createTestUser()` helper with proper typing
+     - Added `userId` to return value with proper type safety
+     - Added error handling for failed user creation
+     - Updated `authRequest()` to use function call syntax
+
+3. **Created Missing Test Files** ✅
+   - Created `src/__tests__/auth.test.ts` with comprehensive tests:
+     - Registration: success, validation, duplicate email/username, optional fields
+     - Login: email/username login, validation, invalid credentials
+     - GET /me: authenticated user info, token validation, error handling
+     - Total: 20+ test cases
+   
+   - Created `src/__tests__/clubs.test.ts` with comprehensive tests:
+     - GET /api/clubs: list all clubs, data structure validation
+     - GET /api/clubs/organization/:id: filter by organization, validation
+     - GET /api/clubs/:id: get by ID, 404 handling, invalid ID handling
+     - Total: 10+ test cases
+   
+   - Created `src/__tests__/organizations.test.ts` with comprehensive tests:
+     - GET /api/organizations: list all, seed data validation, data structure
+     - GET /api/organizations/:id: get by ID, 404 handling, invalid ID handling
+     - Total: 8+ test cases
+
+### Files Created This Session
+- `src/models/attendance.model.ts`
+- `src/controllers/attendance.controller.ts`
+- `src/routes/attendance.routes.ts`
+- `src/__tests__/attendance.test.ts`
+
+### Files Modified This Session
+- `src/app.ts` - Added attendance routes import and registration
+- `src/__tests__/helpers.ts` - Fixed testRequest function, added isAdmin support
 
 ---
 
 ## Next Session Priorities
 
-> **What to work on next**
->
-> List priorities for the next session
+### ✅ COMPLETED: Backend API Unit Testing
+- All 6 test suites passing (44 tests total)
+- Fixed all TypeScript errors in test files
+- Fixed controller validation for negative/zero IDs
+- All test files created and verified:
+  - health.test.ts ✅
+  - troops.test.ts ✅
+  - attendance.test.ts ✅
+  - auth.test.ts ✅
+  - clubs.test.ts ✅
+  - organizations.test.ts ✅
+
+### ✅ COMPLETED: Frontend Unit Testing Setup
+1. ✅ Set up Jest for React Native/Expo
+2. ✅ Installed testing dependencies:
+   - jest, jest-expo
+   - @testing-library/react-native
+   - @testing-library/jest-native
+   - @types/jest
+3. ✅ Configured Jest in package.json:
+   - Preset: jest-expo
+   - Transform ignore patterns for React Native/Expo modules
+   - Test match patterns for .test.{ts,tsx} files
+   - Coverage collection configuration
+   - Module name mapper for @/ path alias
+   - Setup file: `__tests__/setup.ts`
+4. ✅ Created test setup file (`__tests__/setup.ts`):
+   - Mocks AsyncStorage
+   - Mocks expo-router
+   - Configures Jest matchers
+5. ✅ Verified all component files are already .tsx (no conversion needed)
+6. ✅ Created initial test files:
+   - `__tests__/components/ThemedView.test.tsx`
+   - `__tests__/contexts/ThemeContext.test.tsx`
+   - `__tests__/services/api.test.ts`
+7. ✅ Updated README.md with comprehensive testing documentation
+8. ✅ Added VS Code tasks for running tests:
+   - Run Tests (Frontend)
+   - Run Tests: Watch (Frontend)
+   - Run Tests: Coverage (Frontend)
+   - Run Tests (Backend API)
+   - Run Tests: Watch (Backend API)
+   - Run Tests: Coverage (Backend API)
+9. ✅ Added VS Code launch configurations for debugging tests
+10. ✅ Created composite tasks:
+    - "Lint → Test → Start (Frontend)" - Runs lint, tests, then starts dev server
+    - "Lint → Test → Start (Backend API)" - Runs lint, tests, then starts API server
+11. ✅ Created VS Code configs for backend API project (.vscode/tasks.json, .vscode/launch.json)
+
+### Next: Expand Frontend Test Coverage
+1. Add more component tests (ThemedText, etc.)
+2. Add AuthContext tests
+3. Add screen/route tests
+4. Add hook tests
 
 ---
 
-**Session Date:** [DATE]
-**Session Status:** [In Progress / Completed]
+## Feature Implementation Phases
+
+
+### Phase 6: Unit Testing
+
+#### Backend API Testing (Jest + Supertest) ✅ SETUP COMPLETE
+Testing infrastructure is in place. Continue adding tests for each feature.
+
+**Setup Completed:**
+- [x] Install Jest, ts-jest, @types/jest, supertest, @types/supertest
+- [x] Create jest.config.js
+- [x] Create test setup file (src/__tests__/setup.ts)
+- [x] Create test helpers (src/__tests__/helpers.ts)
+- [x] Add test scripts to package.json
+
+**Test Files to Create/Expand:**
+- [x] src/__tests__/health.test.ts - Health check endpoint ✅
+- [x] src/__tests__/troops.test.ts - Troops CRUD (19 tests passing) ✅
+- [x] src/__tests__/attendance.test.ts - Attendance endpoints (fixed TypeScript errors) ✅
+- [x] src/__tests__/auth.test.ts - Authentication (login, register, me) ✅
+- [x] src/__tests__/clubs.test.ts - Club endpoints ✅
+- [x] src/__tests__/organizations.test.ts - Organization endpoints ✅
+- [ ] src/__tests__/users.test.ts - User endpoints (stats, clubs) - Not implemented yet
+- [ ] src/__tests__/search.test.ts - Search endpoints - Not implemented yet
+
+**Commands:**
+```bash
+cd /mnt/c/Users/riche/Development/CaridaTracker-api
+npm test              # Run all tests
+npm run test:watch    # Run tests in watch mode
+npm run test:coverage # Run tests with coverage report
+```
+
+---
+
+#### Frontend Testing (React Native Testing Library)
+Testing framework options for React Native with Expo.
+
+**Recommended Setup:**
+- [ ] Install @testing-library/react-native
+- [ ] Install jest-expo (Expo's Jest preset)
+- [ ] Install @testing-library/jest-native (custom matchers)
+- [ ] Configure Jest for Expo in package.json or jest.config.js
+- [ ] Create test setup file
+
+**Installation Commands:**
+```bash
+cd /mnt/c/Users/riche/Development/CaridaTracker
+npm install --save-dev jest @testing-library/react-native jest-expo @testing-library/jest-native
+```
+
+**Jest Configuration (in package.json):**
+```json
+{
+  "jest": {
+    "preset": "jest-expo",
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)"
+    ],
+    "setupFilesAfterEnv": ["@testing-library/jest-native/extend-expect"]
+  }
+}
+```
+
+**Test Files to Create:**
+- [ ] __tests__/components/ThemedView.test.tsx
+- [ ] __tests__/components/ThemedText.test.tsx
+- [ ] __tests__/screens/LoginScreen.test.tsx
+- [ ] __tests__/screens/RegisterScreen.test.tsx
+- [ ] __tests__/screens/HomeScreen.test.tsx
+- [ ] __tests__/contexts/AuthContext.test.tsx
+- [ ] __tests__/contexts/ThemeContext.test.tsx
+- [ ] __tests__/services/api.test.ts
+- [ ] __tests__/hooks/useColorScheme.test.ts
+
+**Test Coverage Goals:**
+- [ ] Authentication flows (login, logout, token refresh)
+- [ ] Form validation (registration, login forms)
+- [ ] Navigation flows (auth guard, tab navigation)
+- [ ] API service functions (mocking fetch)
+- [ ] Theme switching functionality
+- [ ] Error handling UI
+
+---
+
+**Session Date:** 2025-12-23 (Updated: 2025-12-24)
+**Session Status:** In Progress
+
+### Phase 2: API Endpoints (Backend)
+Build the missing API endpoints before wiring up frontend screens.
+
+- [x] **Troops CRUD** ✅ COMPLETED
+  - [x] GET /api/troops - List troops (filtered by user's clubs)
+  - [x] GET /api/troops/:id - Get troop details
+  - [x] POST /api/troops - Create troop (admin only)
+  - [x] PUT /api/troops/:id - Update troop (admin only)
+  - [x] DELETE /api/troops/:id - Delete troop (admin only)
+
+- [x] **Attendance** ✅ COMPLETED
+  - [x] POST /api/troops/:id/attend - Sign up for troop
+  - [x] DELETE /api/troops/:id/attend - Cancel attendance
+  - [x] GET /api/troops/:id/attendees - List attendees (admin/member)
+
+- [ ] **User Clubs/Memberships**
+  - [ ] GET /api/users/me/clubs - Get current user's club memberships
+  - [ ] GET /api/clubs/:id/members - Get club members (admin)
+
+- [ ] **Stats**
+  - [ ] GET /api/users/me/stats - Global stats for current user
+  - [ ] GET /api/users/me/clubs/:clubId/stats - Per-club stats
+
+- [ ] **Search**
+  - [ ] GET /api/troops/search?q=... - Search troops
+  - [ ] GET /api/users/search?q=... - Search members
+
+---
+
+### Phase 3: Frontend Services
+Add API service layer to call the new endpoints.
+
+- [ ] Add `troopsApi` to services/api.ts
+  - [ ] getAll() - List troops
+  - [ ] getById(id) - Get troop details
+  - [ ] create(data) - Create troop
+  - [ ] update(id, data) - Update troop
+  - [ ] delete(id) - Delete troop
+  - [ ] attend(id, clubId) - Sign up for troop
+  - [ ] cancelAttendance(id, clubId) - Cancel attendance
+
+- [ ] Add `userApi` to services/api.ts
+  - [ ] getMyClubs() - Get user's club memberships
+  - [ ] getMyStats() - Get user's global stats
+  - [ ] getClubStats(clubId) - Get per-club stats
+
+- [ ] Add `searchApi` to services/api.ts
+  - [ ] searchTroops(query) - Search troops
+  - [ ] searchUsers(query) - Search members
+
+---
+
+### Phase 4: State Management
+Add contexts for managing app state.
+
+- [ ] **TroopsContext**
+  - [ ] Troops list cache
+  - [ ] Current troop details
+  - [ ] User's attendance records
+  - [ ] Loading/error states
+
+- [ ] **ClubsContext** (or expand AuthContext)
+  - [ ] User's club memberships
+  - [ ] Current active club context
+  - [ ] Per-club stats
+
+---
+
+### Phase 5: Wire Up Screens
+Connect the UI to real data.
+
+- [ ] **Troops Tab**
+  - [ ] Fetch and display troops list
+  - [ ] Navigate to troop details on tap
+  - [ ] Pull-to-refresh
+
+- [ ] **Troop Details Screen**
+  - [ ] Fetch troop by ID
+  - [ ] Display all troop info
+  - [ ] Sign up / cancel attendance buttons
+
+- [ ] **My Clubs Tab**
+  - [ ] Fetch user's club memberships
+  - [ ] Display per-club stats
+  - [ ] Navigate to club details on tap
+
+- [ ] **Club Details Screen**
+  - [ ] Fetch club by ID
+  - [ ] Display club info and stats
+
+- [ ] **Search Screen**
+  - [ ] Wire up search API calls
+  - [ ] Display search results
+  - [ ] Navigate to troop/user details on tap
+
+- [ ] **Home Dashboard**
+  - [ ] Fetch and display real stats
+  - [ ] Show upcoming troops
+  - [ ] Show recent activity
+
+---
+
+### Phase 6: Security & Validation (Deferred)
+Address after core features work.
+
+- [ ] Input Validation & Security
+- [ ] Password Security
+- [ ] Username/Email Uniqueness
+- [ ] Field-Specific Validation
+- [ ] Email Verification
+- [ ] Forgot Password Functionality
+- [ ] Spam Prevention
+
+---
+

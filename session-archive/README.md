@@ -11,6 +11,8 @@ Each session is archived as a separate markdown file with the naming convention:
 ## Current Archive
 
 - `SESSION_NOTES_2025-12-20_to_2025-12-21.md` - Initial setup, authentication implementation, registration enhancements, theme system, API development
+- `SESSION_NOTES_2025-12-23.md` - Walking skeleton UI, bottom tab navigation, search screen, VS Code tasks setup
+- `SESSION_NOTES_2025-12-24.md` - Backend API unit testing completion, frontend Jest setup, VS Code integration, test documentation
 
 ## Using the Archive
 
