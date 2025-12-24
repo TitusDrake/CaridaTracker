@@ -25,11 +25,11 @@ describe('ThemeContext', () => {
     expect(result.current.setTheme).toBeDefined();
   });
 
-  it('allows changing theme', () => {
+  it('allows changing theme', async () => {
     const { result } = renderHook(() => useTheme(), { wrapper });
 
-    act(() => {
-      result.current.setTheme('darkSide');
+    await act(async () => {
+      await result.current.setTheme('darkSide');
     });
 
     expect(result.current.themeName).toBe('darkSide');

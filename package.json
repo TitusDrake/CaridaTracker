@@ -57,7 +57,10 @@
   "jest": {
     "preset": "jest-expo",
     "transformIgnorePatterns": [
-      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)"
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|react-native-paper)"
+    ],
+    "setupFiles": [
+      "<rootDir>/__tests__/jestSetupBeforeEnv.js"
     ],
     "setupFilesAfterEnv": [
       "<rootDir>/__tests__/setup.ts"
@@ -75,7 +78,8 @@
       "!**/__tests__/**"
     ],
     "moduleNameMapper": {
-      "^@/(.*)$": "<rootDir>/$1"
+      "^@/(.*)$": "<rootDir>/$1",
+      "^expo$": "<rootDir>/__tests__/__mocks__/expo.js"
     }
   },
   "private": true

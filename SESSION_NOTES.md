@@ -405,9 +405,207 @@ CORS_ORIGIN=http://localhost:8081
 
 ## Next Session Priorities
 
-> **What to work on next**
->
-> List priorities for the next session
+### Phase 1: Unit Testing
+
+#### Backend API Testing (Jest + Supertest) ✅ SETUP COMPLETE
+Testing infrastructure is in place. Continue adding tests for each feature.
+
+**Setup Completed:**
+- [x] Install Jest, ts-jest, @types/jest, supertest, @types/supertest
+- [x] Create jest.config.js
+- [x] Create test setup file (src/__tests__/setup.ts)
+- [x] Create test helpers (src/__tests__/helpers.ts)
+- [x] Add test scripts to package.json
+
+**Test Files to Create/Expand:**
+- [x] src/__tests__/health.test.ts - Health check endpoint ✅
+- [x] src/__tests__/troops.test.ts - Troops CRUD (19 tests passing) ✅
+- [x] src/__tests__/attendance.test.ts - Attendance endpoints (fixed TypeScript errors) ✅
+- [x] src/__tests__/auth.test.ts - Authentication (login, register, me) ✅
+- [x] src/__tests__/clubs.test.ts - Club endpoints ✅
+- [x] src/__tests__/organizations.test.ts - Organization endpoints ✅
+- [ ] src/__tests__/users.test.ts - User endpoints (stats, clubs) - Not implemented yet
+- [ ] src/__tests__/search.test.ts - Search endpoints - Not implemented yet
+
+**Commands:**
+```bash
+cd /mnt/c/Users/riche/Development/CaridaTracker-api
+npm test              # Run all tests
+npm run test:watch    # Run tests in watch mode
+npm run test:coverage # Run tests with coverage report
+```
+
+---
+
+#### Frontend Testing (React Native Testing Library)
+Testing framework options for React Native with Expo.
+
+**Recommended Setup:**
+- [ ] Install @testing-library/react-native
+- [ ] Install jest-expo (Expo's Jest preset)
+- [ ] Install @testing-library/jest-native (custom matchers)
+- [ ] Configure Jest for Expo in package.json or jest.config.js
+- [ ] Create test setup file
+
+**Installation Commands:**
+```bash
+cd /mnt/c/Users/riche/Development/CaridaTracker
+npm install --save-dev jest @testing-library/react-native jest-expo @testing-library/jest-native
+```
+
+**Jest Configuration (in package.json):**
+```json
+{
+  "jest": {
+    "preset": "jest-expo",
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)"
+    ],
+    "setupFilesAfterEnv": ["@testing-library/jest-native/extend-expect"]
+  }
+}
+```
+
+**Test Files to Create:**
+- [ ] __tests__/components/ThemedView.test.tsx
+- [ ] __tests__/components/ThemedText.test.tsx
+- [ ] __tests__/screens/LoginScreen.test.tsx
+- [ ] __tests__/screens/RegisterScreen.test.tsx
+- [ ] __tests__/screens/HomeScreen.test.tsx
+- [ ] __tests__/contexts/AuthContext.test.tsx
+- [ ] __tests__/contexts/ThemeContext.test.tsx
+- [ ] __tests__/services/api.test.ts
+- [ ] __tests__/hooks/useColorScheme.test.ts
+
+**Test Coverage Goals:**
+- [ ] Authentication flows (login, logout, token refresh)
+- [ ] Form validation (registration, login forms)
+- [ ] Navigation flows (auth guard, tab navigation)
+- [ ] API service functions (mocking fetch)
+- [ ] Theme switching functionality
+- [ ] Error handling UI
+
+---
+
+**Session Date:** 2025-12-23 (Updated: 2025-12-24)
+**Session Status:** In Progress
+
+### Phase 2: API Endpoints (Backend)
+Build the missing API endpoints before wiring up frontend screens.
+
+- [x] **Troops CRUD** ✅ COMPLETED
+  - [x] GET /api/troops - List troops (filtered by user's clubs)
+  - [x] GET /api/troops/:id - Get troop details
+  - [x] POST /api/troops - Create troop (admin only)
+  - [x] PUT /api/troops/:id - Update troop (admin only)
+  - [x] DELETE /api/troops/:id - Delete troop (admin only)
+
+- [x] **Attendance** ✅ COMPLETED
+  - [x] POST /api/troops/:id/attend - Sign up for troop
+  - [x] DELETE /api/troops/:id/attend - Cancel attendance
+  - [x] GET /api/troops/:id/attendees - List attendees (admin/member)
+
+- [ ] **User Clubs/Memberships**
+  - [ ] GET /api/users/me/clubs - Get current user's club memberships
+  - [ ] GET /api/clubs/:id/members - Get club members (admin)
+
+- [ ] **Stats**
+  - [ ] GET /api/users/me/stats - Global stats for current user
+  - [ ] GET /api/users/me/clubs/:clubId/stats - Per-club stats
+
+- [ ] **Search**
+  - [ ] GET /api/troops/search?q=... - Search troops
+  - [ ] GET /api/users/search?q=... - Search members
+
+---
+
+### Phase 3: Frontend Services
+Add API service layer to call the new endpoints.
+
+- [ ] Add `troopsApi` to services/api.ts
+  - [ ] getAll() - List troops
+  - [ ] getById(id) - Get troop details
+  - [ ] create(data) - Create troop
+  - [ ] update(id, data) - Update troop
+  - [ ] delete(id) - Delete troop
+  - [ ] attend(id, clubId) - Sign up for troop
+  - [ ] cancelAttendance(id, clubId) - Cancel attendance
+
+- [ ] Add `userApi` to services/api.ts
+  - [ ] getMyClubs() - Get user's club memberships
+  - [ ] getMyStats() - Get user's global stats
+  - [ ] getClubStats(clubId) - Get per-club stats
+
+- [ ] Add `searchApi` to services/api.ts
+  - [ ] searchTroops(query) - Search troops
+  - [ ] searchUsers(query) - Search members
+
+---
+
+### Phase 4: State Management
+Add contexts for managing app state.
+
+- [ ] **TroopsContext**
+  - [ ] Troops list cache
+  - [ ] Current troop details
+  - [ ] User's attendance records
+  - [ ] Loading/error states
+
+- [ ] **ClubsContext** (or expand AuthContext)
+  - [ ] User's club memberships
+  - [ ] Current active club context
+  - [ ] Per-club stats
+
+---
+
+### Phase 5: Wire Up Screens
+Connect the UI to real data.
+
+- [ ] **Troops Tab**
+  - [ ] Fetch and display troops list
+  - [ ] Navigate to troop details on tap
+  - [ ] Pull-to-refresh
+
+- [ ] **Troop Details Screen**
+  - [ ] Fetch troop by ID
+  - [ ] Display all troop info
+  - [ ] Sign up / cancel attendance buttons
+
+- [ ] **My Clubs Tab**
+  - [ ] Fetch user's club memberships
+  - [ ] Display per-club stats
+  - [ ] Navigate to club details on tap
+
+- [ ] **Club Details Screen**
+  - [ ] Fetch club by ID
+  - [ ] Display club info and stats
+
+- [ ] **Search Screen**
+  - [ ] Wire up search API calls
+  - [ ] Display search results
+  - [ ] Navigate to troop/user details on tap
+
+- [ ] **Home Dashboard**
+  - [ ] Fetch and display real stats
+  - [ ] Show upcoming troops
+  - [ ] Show recent activity
+
+---
+
+### Phase 6: Security & Validation (Deferred)
+Address after core features work.
+
+- [ ] Input Validation & Security
+- [ ] Password Security
+- [ ] Username/Email Uniqueness
+- [ ] Field-Specific Validation
+- [ ] Email Verification
+- [ ] Forgot Password Functionality
+- [ ] Spam Prevention
+
+---
+
+
 
 ---
 
