@@ -68,6 +68,90 @@ npm run lint:fix
 
 It's recommended to run `npm run lint` before committing code. Consider setting up a pre-commit hook (e.g., with husky) to automatically run linting.
 
+## Testing
+
+This project uses **Jest** and **React Native Testing Library** for component and functionality testing. All tests are located in `__tests__/`.
+
+### Test Setup
+
+Tests are configured to work with Expo and React Native. The setup includes:
+
+- **Jest Preset:** `jest-expo` - Expo's Jest configuration
+- **Testing Library:** `@testing-library/react-native` - React Native component testing
+- **Test Location:** `__tests__/**/*.test.{ts,tsx}` or `**/*.test.{ts,tsx}`
+- **Setup File:** `__tests__/setup.ts` - Configures mocks and test environment
+
+### Running Tests
+
+**Run all tests:**
+```bash
+npm test
+```
+
+**Run tests in watch mode** (automatically re-runs on file changes):
+```bash
+npm run test:watch
+```
+
+**Run tests with coverage report:**
+```bash
+npm run test:coverage
+```
+
+**Run a specific test file:**
+```bash
+npm test -- ThemedView.test.tsx
+```
+
+**Run tests matching a pattern:**
+```bash
+npm test -- --testNamePattern="renders correctly"
+```
+
+### Test Files
+
+Current test coverage includes:
+
+- ✅ `__tests__/components/ThemedView.test.tsx` - ThemedView component tests
+- ✅ `__tests__/contexts/ThemeContext.test.tsx` - Theme context tests
+- ✅ `__tests__/services/api.test.ts` - API service tests
+
+### Test Structure
+
+Tests use React Native Testing Library for component testing:
+
+```typescript
+import { render } from '@testing-library/react-native';
+import { ThemedView } from '@/components/themed-view';
+
+describe('ThemedView', () => {
+  it('renders correctly', () => {
+    const { getByTestId } = render(<ThemedView testID="test" />);
+    expect(getByTestId('test')).toBeTruthy();
+  });
+});
+```
+
+### Test Configuration
+
+- **Test Framework:** Jest with jest-expo preset
+- **Test Environment:** React Native
+- **Test Location:** `__tests__/**/*.test.{ts,tsx}`
+- **Setup File:** `__tests__/setup.ts` (mocks AsyncStorage, expo-router, etc.)
+- **Coverage:** Excludes type definitions, node_modules, .expo, and test files
+
+### Important Notes
+
+1. **Mocks:** The setup file automatically mocks:
+   - `@react-native-async-storage/async-storage`
+   - `expo-router` (useRouter, useSegments, etc.)
+
+2. **Context Providers:** Tests that use contexts (ThemeContext, AuthContext) should wrap components with the appropriate providers.
+
+3. **Async Operations:** Use `waitFor` and `act` from React Native Testing Library for async operations.
+
+4. **VS Code Integration:** Test tasks are available in VS Code (Ctrl+Shift+P → "Tasks: Run Task" → "Run Tests")
+
 ## Learn more
 
 To learn more about developing your project with Expo, look at the following resources:

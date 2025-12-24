@@ -2,6 +2,17 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Run Lint (Frontend)",
+      "type": "shell",
+      "command": "npm run lint",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "lint"
+      }
+    },
+    {
       "label": "Start Frontend (Expo)",
       "type": "shell",
       "command": "npm start",
@@ -36,6 +47,102 @@
       "dependsOn": ["Start Backend (API)", "Start Frontend (Expo)"],
       "dependsOrder": "parallel",
       "problemMatcher": []
+    },
+    {
+      "label": "Lint → Test → Start (Frontend)",
+      "dependsOn": [
+        "Run Lint (Frontend)",
+        "Run Tests (Frontend)",
+        "Start Frontend (Expo)"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Tests (Frontend)",
+      "type": "shell",
+      "command": "npm test",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "test"
+      }
+    },
+    {
+      "label": "Run Tests: Watch (Frontend)",
+      "type": "shell",
+      "command": "npm run test:watch",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "test"
+      }
+    },
+    {
+      "label": "Run Tests: Coverage (Frontend)",
+      "type": "shell",
+      "command": "npm run test:coverage",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "test"
+      }
+    },
+    {
+      "label": "Run Tests (Backend API)",
+      "type": "shell",
+      "command": "wsl",
+      "args": [
+        "-e",
+        "bash",
+        "-c",
+        "cd /mnt/c/Users/riche/Development/CaridaTracker-api && npm test"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "test"
+      }
+    },
+    {
+      "label": "Run Tests: Watch (Backend API)",
+      "type": "shell",
+      "command": "wsl",
+      "args": [
+        "-e",
+        "bash",
+        "-c",
+        "cd /mnt/c/Users/riche/Development/CaridaTracker-api && npm run test:watch"
+      ],
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "test"
+      }
+    },
+    {
+      "label": "Run Tests: Coverage (Backend API)",
+      "type": "shell",
+      "command": "wsl",
+      "args": [
+        "-e",
+        "bash",
+        "-c",
+        "cd /mnt/c/Users/riche/Development/CaridaTracker-api && npm run test:coverage"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "test"
+      }
     }
   ]
 }

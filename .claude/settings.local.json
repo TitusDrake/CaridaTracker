@@ -11,7 +11,8 @@
       "Bash(npm install:*)",
       "Bash(PGPASSWORD=password psql:*)",
       "Bash(sudo service postgresql:*)",
-      "Bash(pg_isready:*)"
+      "Bash(pg_isready:*)",
+      "Bash(npm test:*)"
     ]
   }
 }

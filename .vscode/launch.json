@@ -9,6 +9,24 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["start"],
       "console": "integratedTerminal"
+    },
+    {
+      "name": "Run Tests (Frontend)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["test"],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Run Tests: Watch (Frontend)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "test:watch"],
+      "console": "integratedTerminal"
     }
   ],
   "compounds": [
