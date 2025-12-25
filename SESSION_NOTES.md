@@ -342,6 +342,7 @@ CORS_ORIGIN=http://localhost:8081
 - `GET /api/clubs` - Get all clubs
 - `GET /api/clubs/organization/:organizationId` - Get clubs by organization
 - `GET /api/clubs/:id` - Get club by ID
+- `GET /api/clubs/:id/members` - Get club members (authenticated, must be member)
 
 ### Troops
 - `GET /api/troops` - List troops (filtered by user's clubs)
@@ -377,6 +378,7 @@ CORS_ORIGIN=http://localhost:8081
 - ✅ Theme selector on Profile screen
 - ✅ Jest testing infrastructure setup
 - ✅ Initial test files (components, contexts, services)
+- ✅ Frontend API services (troopApi, userApi, searchApi, clubApi.getMembers)
 
 ### Backend
 - ✅ JWT authentication
@@ -490,7 +492,7 @@ npm install --save-dev jest @testing-library/react-native jest-expo @testing-lib
 **Session Date:** 2025-12-23 (Updated: 2025-12-24)
 **Session Status:** In Progress
 
-### Phase 2: API Endpoints (Backend)
+### Phase 2: API Endpoints (Backend) ✅ COMPLETED
 Build the missing API endpoints before wiring up frontend screens.
 
 - [x] **Troops CRUD** ✅ COMPLETED
@@ -505,40 +507,50 @@ Build the missing API endpoints before wiring up frontend screens.
   - [x] DELETE /api/troops/:id/attend - Cancel attendance
   - [x] GET /api/troops/:id/attendees - List attendees (admin/member)
 
-- [ ] **User Clubs/Memberships**
-  - [ ] GET /api/users/me/clubs - Get current user's club memberships
-  - [ ] GET /api/clubs/:id/members - Get club members (admin)
+- [x] **User Clubs/Memberships** ✅ COMPLETED
+  - [x] GET /api/users/me/clubs - Get current user's club memberships
+  - [x] GET /api/clubs/:id/members - Get club members (authenticated, must be member)
 
-- [ ] **Stats**
-  - [ ] GET /api/users/me/stats - Global stats for current user
-  - [ ] GET /api/users/me/clubs/:clubId/stats - Per-club stats
+- [x] **Stats** ✅ COMPLETED
+  - [x] GET /api/users/me/stats - Global stats for current user
+  - [x] GET /api/users/me/clubs/:clubId/stats - Per-club stats
 
-- [ ] **Search**
-  - [ ] GET /api/troops/search?q=... - Search troops
-  - [ ] GET /api/users/search?q=... - Search members
+- [x] **Search** ✅ COMPLETED
+  - [x] GET /api/search/troops?q=... - Search troops
+  - [x] GET /api/search/users?q=... - Search members
 
 ---
 
-### Phase 3: Frontend Services
+### Phase 3: Frontend Services ✅ COMPLETED
 Add API service layer to call the new endpoints.
 
-- [ ] Add `troopsApi` to services/api.ts
-  - [ ] getAll() - List troops
-  - [ ] getById(id) - Get troop details
-  - [ ] create(data) - Create troop
-  - [ ] update(id, data) - Update troop
-  - [ ] delete(id) - Delete troop
-  - [ ] attend(id, clubId) - Sign up for troop
-  - [ ] cancelAttendance(id, clubId) - Cancel attendance
+- [x] Add `troopsApi` to services/api.ts ✅ COMPLETED
+  - [x] getAll() - List troops
+  - [x] getById(id) - Get troop details
+  - [x] create(data) - Create troop
+  - [x] update(id, data) - Update troop
+  - [x] delete(id) - Delete troop
+  - [x] attend(id, clubId) - Sign up for troop
+  - [x] cancelAttendance(id, clubId) - Cancel attendance
+  - [x] getAttendees(id) - Get troop attendees
 
-- [ ] Add `userApi` to services/api.ts
-  - [ ] getMyClubs() - Get user's club memberships
-  - [ ] getMyStats() - Get user's global stats
-  - [ ] getClubStats(clubId) - Get per-club stats
+- [x] Add `userApi` to services/api.ts ✅ COMPLETED
+  - [x] getMyClubs() - Get user's club memberships
+  - [x] getMyStats() - Get user's global stats
+  - [x] getClubStats(clubId) - Get per-club stats
 
-- [ ] Add `searchApi` to services/api.ts
-  - [ ] searchTroops(query) - Search troops
-  - [ ] searchUsers(query) - Search members
+- [x] Add `searchApi` to services/api.ts ✅ COMPLETED
+  - [x] searchTroops(query) - Search troops
+  - [x] searchUsers(query) - Search members
+
+- [x] Add `clubApi.getMembers()` to services/api.ts ✅ COMPLETED
+  - [x] getMembers(clubId) - Get club members
+
+**New TypeScript Interfaces Added:**
+- `Troop`, `TroopCreateData`, `TroopUpdateData`
+- `ClubMembership`, `ClubMember`
+- `UserGlobalStats`, `UserClubStats`
+- `UserSearchResult`
 
 ---
 

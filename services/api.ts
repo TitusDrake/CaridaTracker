@@ -70,6 +70,113 @@ export interface Club {
   updated_at: string;
 }
 
+export interface Troop {
+  id: number;
+  event_name: string;
+  event_date: string;
+  created_by_club_id: number;
+  venue_name?: string | null;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zip_code?: string | null;
+  request_date?: string | null;
+  request_status?: string | null;
+  charity_name?: string | null;
+  charity_url?: string | null;
+  website_url?: string | null;
+  special_notes?: string | null;
+  is_visible: boolean;
+  created_at: string;
+  updated_at: string;
+  // Extended fields from TroopWithDetails
+  club_name?: string;
+  organization_name?: string;
+  attendee_count?: number;
+  is_attending?: boolean;
+  user_attendance_club_id?: number;
+}
+
+export interface TroopCreateData {
+  event_name: string;
+  event_date: string;
+  created_by_club_id: number;
+  venue_name?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip_code?: string;
+  request_date?: string;
+  request_status?: string;
+  charity_name?: string;
+  charity_url?: string;
+  website_url?: string;
+  special_notes?: string;
+  is_visible?: boolean;
+}
+
+export interface TroopUpdateData {
+  event_name?: string;
+  event_date?: string;
+  venue_name?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip_code?: string;
+  request_date?: string;
+  request_status?: string;
+  charity_name?: string;
+  charity_url?: string;
+  website_url?: string;
+  special_notes?: string;
+  is_visible?: boolean;
+}
+
+export interface ClubMembership {
+  membership_id: number;
+  role: string;
+  club_id: number;
+  club_name: string;
+  organization_id: number;
+  organization_name: string;
+  joined_at: string;
+}
+
+export interface ClubMember {
+  membership_id: number;
+  role: string;
+  user_id: number;
+  username: string;
+  first_name?: string;
+  last_name?: string;
+  joined_at: string;
+}
+
+export interface UserGlobalStats {
+  total_troops: number;
+  clubs_attended_as: number;
+  upcoming_troops: number;
+  past_troops: number;
+}
+
+export interface UserClubStats {
+  total_troops: number;
+  upcoming_troops: number;
+  past_troops: number;
+  club: {
+    id: number;
+    name: string;
+    organization_name: string;
+  };
+}
+
+export interface UserSearchResult {
+  id: number;
+  username: string;
+  first_name?: string;
+  last_name?: string;
+}
+
 // Helper to get stored token
 export const getToken = async (): Promise<string | null> => {
   try {
@@ -359,6 +466,226 @@ export const clubApi = {
     }
 
     return data as Club;
+  },
+
+  // Get club members (requires auth and membership)
+  getMembers: async (clubId: number): Promise<ClubMember[]> => {
+    const response = await fetchWithAuth(`/clubs/${clubId}/members`, {
+      method: 'GET',
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw data as ApiError;
+    }
+
+    return data as ClubMember[];
+  },
+};
+
+// Troops API calls
+export const troopApi = {
+  // Get all troops visible to user
+  getAll: async (): Promise<Troop[]> => {
+    const response = await fetchWithAuth('/troops', {
+      method: 'GET',
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw data as ApiError;
+    }
+
+    return data as Troop[];
+  },
+
+  // Get troop by ID
+  getById: async (id: number): Promise<Troop> => {
+    const response = await fetchWithAuth(`/troops/${id}`, {
+      method: 'GET',
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw data as ApiError;
+    }
+
+    return data as Troop;
+  },
+
+  // Create a new troop (admin only)
+  create: async (troopData: TroopCreateData): Promise<Troop> => {
+    const response = await fetchWithAuth('/troops', {
+      method: 'POST',
+      body: JSON.stringify(troopData),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw data as ApiError;
+    }
+
+    return data as Troop;
+  },
+
+  // Update a troop (admin only)
+  update: async (id: number, troopData: TroopUpdateData): Promise<Troop> => {
+    const response = await fetchWithAuth(`/troops/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(troopData),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw data as ApiError;
+    }
+
+    return data as Troop;
+  },
+
+  // Delete a troop (admin only)
+  delete: async (id: number): Promise<void> => {
+    const response = await fetchWithAuth(`/troops/${id}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw data as ApiError;
+    }
+  },
+
+  // Sign up for a troop
+  attend: async (troopId: number, clubId: number): Promise<{ message: string }> => {
+    const response = await fetchWithAuth(`/troops/${troopId}/attend`, {
+      method: 'POST',
+      body: JSON.stringify({ club_id: clubId }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw data as ApiError;
+    }
+
+    return data;
+  },
+
+  // Cancel attendance
+  cancelAttendance: async (troopId: number, clubId: number): Promise<{ message: string }> => {
+    const response = await fetchWithAuth(`/troops/${troopId}/attend`, {
+      method: 'DELETE',
+      body: JSON.stringify({ club_id: clubId }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw data as ApiError;
+    }
+
+    return data;
+  },
+
+  // Get attendees for a troop
+  getAttendees: async (troopId: number): Promise<any[]> => {
+    const response = await fetchWithAuth(`/troops/${troopId}/attendees`, {
+      method: 'GET',
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw data as ApiError;
+    }
+
+    return data;
+  },
+};
+
+// User API calls
+export const userApi = {
+  // Get user's club memberships
+  getMyClubs: async (): Promise<ClubMembership[]> => {
+    const response = await fetchWithAuth('/users/me/clubs', {
+      method: 'GET',
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw data as ApiError;
+    }
+
+    return data as ClubMembership[];
+  },
+
+  // Get user's global stats
+  getMyStats: async (): Promise<UserGlobalStats> => {
+    const response = await fetchWithAuth('/users/me/stats', {
+      method: 'GET',
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw data as ApiError;
+    }
+
+    return data as UserGlobalStats;
+  },
+
+  // Get user's stats for a specific club
+  getClubStats: async (clubId: number): Promise<UserClubStats> => {
+    const response = await fetchWithAuth(`/users/me/clubs/${clubId}/stats`, {
+      method: 'GET',
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw data as ApiError;
+    }
+
+    return data as UserClubStats;
+  },
+};
+
+// Search API calls
+export const searchApi = {
+  // Search troops
+  searchTroops: async (query: string): Promise<Troop[]> => {
+    const response = await fetchWithAuth(`/search/troops?q=${encodeURIComponent(query)}`, {
+      method: 'GET',
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw data as ApiError;
+    }
+
+    return data as Troop[];
+  },
+
+  // Search users
+  searchUsers: async (query: string): Promise<UserSearchResult[]> => {
+    const response = await fetchWithAuth(`/search/users?q=${encodeURIComponent(query)}`, {
+      method: 'GET',
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw data as ApiError;
+    }
+
+    return data as UserSearchResult[];
   },
 };
 
