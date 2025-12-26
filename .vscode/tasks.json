@@ -13,6 +13,29 @@
       }
     },
     {
+      "label": "Run Lint (Backend API)",
+      "type": "shell",
+      "command": "wsl.exe",
+      "args": [
+        "--",
+        "bash",
+        "-ic",
+        "cd /mnt/c/Users/riche/Development/CaridaTracker-api && npm run lint"
+      ],
+      "problemMatcher": [],
+      "options": {
+        "shell": {
+          "executable": "cmd.exe",
+          "args": ["/c"]
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "lint"
+      }
+    },
+    {
       "label": "Start Frontend (Expo)",
       "type": "shell",
       "command": "npm start",
@@ -27,15 +50,21 @@
     {
       "label": "Start Backend (API)",
       "type": "shell",
-      "command": "wsl",
+      "command": "wsl.exe",
       "args": [
-        "-e",
+        "--",
         "bash",
-        "-c",
+        "-ic",
         "cd /mnt/c/Users/riche/Development/CaridaTracker-api && npm run dev"
       ],
       "isBackground": true,
       "problemMatcher": [],
+      "options": {
+        "shell": {
+          "executable": "cmd.exe",
+          "args": ["/c"]
+        }
+      },
       "presentation": {
         "reveal": "always",
         "panel": "dedicated",
@@ -46,6 +75,18 @@
       "label": "Start All (Frontend + Backend)",
       "dependsOn": ["Start Backend (API)", "Start Frontend (Expo)"],
       "dependsOrder": "parallel",
+      "problemMatcher": []
+    },
+    {
+      "label": "Lint + Test + Start All",
+      "dependsOn": [
+        "Run Lint (Frontend)",
+        "Run Lint (Backend API)",
+        "Run Tests (Frontend)",
+        "Run Tests (Backend API)",
+        "Start All (Frontend + Backend)"
+      ],
+      "dependsOrder": "sequence",
       "problemMatcher": []
     },
     {
@@ -95,14 +136,20 @@
     {
       "label": "Run Tests (Backend API)",
       "type": "shell",
-      "command": "wsl",
+      "command": "wsl.exe",
       "args": [
-        "-e",
+        "--",
         "bash",
-        "-c",
+        "-ic",
         "cd /mnt/c/Users/riche/Development/CaridaTracker-api && npm test"
       ],
       "problemMatcher": [],
+      "options": {
+        "shell": {
+          "executable": "cmd.exe",
+          "args": ["/c"]
+        }
+      },
       "presentation": {
         "reveal": "always",
         "panel": "dedicated",
@@ -112,15 +159,21 @@
     {
       "label": "Run Tests: Watch (Backend API)",
       "type": "shell",
-      "command": "wsl",
+      "command": "wsl.exe",
       "args": [
-        "-e",
+        "--",
         "bash",
-        "-c",
+        "-ic",
         "cd /mnt/c/Users/riche/Development/CaridaTracker-api && npm run test:watch"
       ],
       "isBackground": true,
       "problemMatcher": [],
+      "options": {
+        "shell": {
+          "executable": "cmd.exe",
+          "args": ["/c"]
+        }
+      },
       "presentation": {
         "reveal": "always",
         "panel": "dedicated",
@@ -130,14 +183,20 @@
     {
       "label": "Run Tests: Coverage (Backend API)",
       "type": "shell",
-      "command": "wsl",
+      "command": "wsl.exe",
       "args": [
-        "-e",
+        "--",
         "bash",
-        "-c",
+        "-ic",
         "cd /mnt/c/Users/riche/Development/CaridaTracker-api && npm run test:coverage"
       ],
       "problemMatcher": [],
+      "options": {
+        "shell": {
+          "executable": "cmd.exe",
+          "args": ["/c"]
+        }
+      },
       "presentation": {
         "reveal": "always",
         "panel": "dedicated",

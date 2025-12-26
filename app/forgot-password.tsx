@@ -53,7 +53,7 @@ export default function ForgotPasswordScreen() {
       <ThemedView style={styles.content}>
         <Text variant="headlineLarge" style={styles.title}>Reset Password</Text>
         <Text variant="bodyLarge" style={styles.subtitle}>
-          Enter your email address and we'll send you instructions to reset your password.
+          {"Enter your email address and we'll send you instructions to reset your password."}
         </Text>
 
         {error ? (

@@ -100,7 +100,7 @@ export default function LoginScreen() {
 
           <View style={styles.createAccountContainer}>
             <Text variant="bodyMedium" style={styles.createAccountText}>
-              Don't have an account?{' '}
+              {"Don't have an account?"}{' '}
             </Text>
             <Button
               mode="text"

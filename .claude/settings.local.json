@@ -13,7 +13,10 @@
       "Bash(sudo service postgresql:*)",
       "Bash(pg_isready:*)",
       "Bash(npm test:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(npm run migrate:up:*)",
+      "Bash(npm ls:*)",
+      "Bash(rm:*)"
     ]
   }
 }

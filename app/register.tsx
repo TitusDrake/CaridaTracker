@@ -17,7 +17,7 @@ function Dropdown({
 }: {
   label: string;
   value: string;
-  options: Array<{ id: string; name: string }>;
+  options: { id: string; name: string }[];
   onSelect: (id: string) => void;
   disabled?: boolean;
 }) {
@@ -76,7 +76,7 @@ function Dropdown({
                     }}
                     style={[
                       styles.optionItem,
-                      item.id === value && { backgroundColor: `${colors.primary}20` }
+                      item.id === value && { backgroundColor: `${colors.primary}20` },
                     ]}
                   >
                     <Text
@@ -120,10 +120,10 @@ export default function RegisterScreen() {
   const { register } = useAuth();
 
   // Organizations and clubs state
-  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string }>>([
+  const [organizations, setOrganizations] = useState<{ id: string; name: string }[]>([
     { id: '', name: 'Select Organization' },
   ]);
-  const [clubs, setClubs] = useState<Array<{ id: string; name: string }>>([
+  const [clubs, setClubs] = useState<{ id: string; name: string }[]>([
     { id: '', name: 'Select Club' },
   ]);
   const [isLoadingOrgs, setIsLoadingOrgs] = useState(true);
@@ -135,17 +135,15 @@ export default function RegisterScreen() {
       try {
         setIsLoadingOrgs(true);
         setError(''); // Clear any previous errors
-        console.log('Fetching organizations...');
         const orgs = await organizationApi.getAll();
-        console.log('Organizations fetched:', orgs);
         setOrganizations([
           { id: '', name: 'Select Organization' },
           ...orgs.map(org => ({ id: org.id.toString(), name: org.name })),
         ]);
       } catch (err) {
         console.error('Error fetching organizations:', err);
-        const errorMessage = err instanceof Error 
-          ? err.message 
+        const errorMessage = err instanceof Error
+          ? err.message
           : 'Failed to load organizations. Please ensure the backend API is running.';
         setError(errorMessage);
       } finally {
@@ -558,9 +556,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 14,
     paddingHorizontal: 16,
-  },
-  selectedItem: {
-    // backgroundColor set dynamically
   },
   requiredNote: {
     opacity: 0.6,

@@ -7,6 +7,8 @@ import { ActivityIndicator, View } from 'react-native';
 
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider, useTheme, getPaperTheme, getNavigationTheme } from '@/contexts/ThemeContext';
+import { TroopsProvider } from '@/contexts/TroopsContext';
+import { ClubsProvider } from '@/contexts/ClubsContext';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -49,7 +51,11 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <ThemedApp />
+        <TroopsProvider>
+          <ClubsProvider>
+            <ThemedApp />
+          </ClubsProvider>
+        </TroopsProvider>
       </ThemeProvider>
     </AuthProvider>
   );
