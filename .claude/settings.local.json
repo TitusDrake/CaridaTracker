@@ -16,7 +16,8 @@
       "Bash(mkdir:*)",
       "Bash(npm run migrate:up:*)",
       "Bash(npm ls:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(npm run lint:*)"
     ]
   }
 }

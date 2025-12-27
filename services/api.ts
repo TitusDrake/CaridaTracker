@@ -177,6 +177,109 @@ export interface UserSearchResult {
   last_name?: string;
 }
 
+// 501st Legion Costume types
+export interface Legion501Costume {
+  costumeId: number;
+  prefix: string;
+  costumeName: string;
+  photoURL: string;
+  thumbnail: string;
+  bucketOffPhoto: string;
+}
+
+// Troop Shift types
+export interface TroopShift {
+  id: number;
+  troop_id: number;
+  name: string;
+  start_time?: string | null;
+  end_time?: string | null;
+  max_attendees?: number | null;
+  max_troopers?: number | null;
+  max_squires?: number | null;
+  attendee_count?: number;
+  trooper_count?: number;
+  squire_count?: number;
+  created_at: string;
+}
+
+export interface TroopShiftInput {
+  name: string;
+  start_time?: string;
+  end_time?: string;
+  max_attendees?: number;
+  max_troopers?: number;
+  max_squires?: number;
+}
+
+// Attendee types
+export type AttendeeType = 'trooper' | 'squire';
+export type SignupStatus = 'confirmed' | 'waitlisted' | 'pending_approval' | 'rejected';
+
+// Attendance status type (confirmed/tentative for user's attendance intention)
+export type AttendanceStatus = 'confirmed' | 'tentative';
+
+// Attendance signup data
+export interface AttendanceSignupData {
+  club_id: number;
+  costume_id?: number;
+  costume_name?: string;
+  backup_costume_id?: number;
+  backup_costume_name?: string;
+  attendance_status?: AttendanceStatus;
+  shift_id?: number;
+  attendee_type?: AttendeeType;
+  notes?: string;
+}
+
+// Attendance signup response
+export interface AttendanceSignupResponse {
+  id: number;
+  troop_id: number;
+  user_id: number;
+  club_id: number;
+  attendee_type: AttendeeType;
+  signup_status: SignupStatus;
+  waitlist_position?: number | null;
+  message: string;
+}
+
+// Capacity info
+export interface CapacityInfo {
+  max_troopers: number | null;
+  max_squires: number | null;
+  current_troopers: number;
+  current_squires: number;
+  confirmed_troopers: number;
+  confirmed_squires: number;
+  waitlisted_troopers: number;
+  waitlisted_squires: number;
+  pending_troopers: number;
+  pending_squires: number;
+  admin_approval_required: boolean;
+  waitlist_enabled: boolean;
+}
+
+// Attendee with details
+export interface AttendeeWithDetails {
+  id: number;
+  troop_id: number;
+  user_id: number;
+  club_id: number;
+  attendee_type: AttendeeType;
+  signup_status: SignupStatus;
+  waitlist_position?: number | null;
+  attendance_status?: 'confirmed' | 'tentative' | null;
+  costume_name?: string | null;
+  backup_costume_name?: string | null;
+  notes?: string | null;
+  signed_up_at: string;
+  username: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  club_name: string;
+}
+
 // Helper to get stored token
 export const getToken = async (): Promise<string | null> => {
   try {
@@ -560,11 +663,14 @@ export const troopApi = {
     }
   },
 
-  // Sign up for a troop
-  attend: async (troopId: number, clubId: number): Promise<{ message: string }> => {
+  // Sign up for a troop with costume, backup costume, status, and optional shift
+  attend: async (
+    troopId: number,
+    signupData: AttendanceSignupData,
+  ): Promise<AttendanceSignupResponse> => {
     const response = await fetchWithAuth(`/troops/${troopId}/attend`, {
       method: 'POST',
-      body: JSON.stringify({ club_id: clubId }),
+      body: JSON.stringify(signupData),
     });
 
     const data = await response.json();
@@ -573,7 +679,82 @@ export const troopApi = {
       throw data as ApiError;
     }
 
-    return data;
+    return data as AttendanceSignupResponse;
+  },
+
+  // Get capacity info for a troop
+  getCapacity: async (troopId: number, shiftId?: number): Promise<CapacityInfo> => {
+    const queryParams = shiftId ? `?shift_id=${shiftId}` : '';
+    const response = await fetchWithAuth(`/troops/${troopId}/capacity${queryParams}`, {
+      method: 'GET',
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw data as ApiError;
+    }
+
+    return data as CapacityInfo;
+  },
+
+  // Get shifts for a troop
+  getShifts: async (troopId: number): Promise<TroopShift[]> => {
+    const response = await fetchWithAuth(`/troops/${troopId}/shifts`, {
+      method: 'GET',
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw data as ApiError;
+    }
+
+    return data as TroopShift[];
+  },
+
+  // Create a shift for a troop (admin only)
+  createShift: async (troopId: number, shiftData: TroopShiftInput): Promise<TroopShift> => {
+    const response = await fetchWithAuth(`/troops/${troopId}/shifts`, {
+      method: 'POST',
+      body: JSON.stringify(shiftData),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw data as ApiError;
+    }
+
+    return data as TroopShift;
+  },
+
+  // Update a shift (admin only)
+  updateShift: async (troopId: number, shiftId: number, shiftData: Partial<TroopShiftInput>): Promise<TroopShift> => {
+    const response = await fetchWithAuth(`/troops/${troopId}/shifts/${shiftId}`, {
+      method: 'PUT',
+      body: JSON.stringify(shiftData),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw data as ApiError;
+    }
+
+    return data as TroopShift;
+  },
+
+  // Delete a shift (admin only)
+  deleteShift: async (troopId: number, shiftId: number): Promise<void> => {
+    const response = await fetchWithAuth(`/troops/${troopId}/shifts/${shiftId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw data as ApiError;
+    }
   },
 
   // Cancel attendance
@@ -593,7 +774,7 @@ export const troopApi = {
   },
 
   // Get attendees for a troop
-  getAttendees: async (troopId: number): Promise<any[]> => {
+  getAttendees: async (troopId: number): Promise<{ attendees: AttendeeWithDetails[]; counts: { troopers: number; squires: number; waitlisted_troopers: number; waitlisted_squires: number; pending: number } }> => {
     const response = await fetchWithAuth(`/troops/${troopId}/attendees`, {
       method: 'GET',
     });
@@ -686,6 +867,39 @@ export const searchApi = {
     }
 
     return data as UserSearchResult[];
+  },
+};
+
+// Costume API calls (501st Legion)
+export const costumeApi = {
+  // Get costumes for the authenticated user (based on their TKID)
+  getMyCostumes: async (): Promise<Legion501Costume[]> => {
+    const response = await fetchWithAuth('/costumes/my-costumes', {
+      method: 'GET',
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw data as ApiError;
+    }
+
+    return data as Legion501Costume[];
+  },
+
+  // Get costumes by Legion ID (for looking up other members)
+  getByLegionId: async (legionId: string): Promise<Legion501Costume[]> => {
+    const response = await fetchWithAuth(`/costumes/501st/${legionId}`, {
+      method: 'GET',
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw data as ApiError;
+    }
+
+    return data as Legion501Costume[];
   },
 };
 

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { troopApi, Troop, TroopCreateData, TroopUpdateData, ApiError } from '@/services/api';
+import { troopApi, Troop, TroopCreateData, TroopUpdateData, ApiError, AttendanceSignupData } from '@/services/api';
 
 interface TroopsContextType {
   troops: Troop[];
@@ -11,7 +11,7 @@ interface TroopsContextType {
   createTroop: (data: TroopCreateData) => Promise<Troop>;
   updateTroop: (id: number, data: TroopUpdateData) => Promise<Troop>;
   deleteTroop: (id: number) => Promise<void>;
-  attendTroop: (troopId: number, clubId: number) => Promise<void>;
+  attendTroop: (troopId: number, signupData: AttendanceSignupData) => Promise<void>;
   cancelAttendance: (troopId: number, clubId: number) => Promise<void>;
   clearCurrentTroop: () => void;
   clearError: () => void;
@@ -119,18 +119,18 @@ export const TroopsProvider: React.FC<TroopsProviderProps> = ({ children }) => {
     }
   }, [currentTroop]);
 
-  const attendTroop = useCallback(async (troopId: number, clubId: number): Promise<void> => {
+  const attendTroop = useCallback(async (troopId: number, signupData: AttendanceSignupData): Promise<void> => {
     setIsLoading(true);
     setError(null);
     try {
-      await troopApi.attend(troopId, clubId);
+      await troopApi.attend(troopId, signupData);
       // Update local state to reflect attendance
       setTroops(prev => prev.map(t => {
         if (t.id === troopId) {
           return {
             ...t,
             is_attending: true,
-            user_attendance_club_id: clubId,
+            user_attendance_club_id: signupData.club_id,
             attendee_count: (t.attendee_count || 0) + 1,
           };
         }
@@ -140,7 +140,7 @@ export const TroopsProvider: React.FC<TroopsProviderProps> = ({ children }) => {
         setCurrentTroop(prev => prev ? {
           ...prev,
           is_attending: true,
-          user_attendance_club_id: clubId,
+          user_attendance_club_id: signupData.club_id,
           attendee_count: (prev.attendee_count || 0) + 1,
         } : null);
       }
