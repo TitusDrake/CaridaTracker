@@ -6,7 +6,7 @@ import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTroops } from '@/contexts/TroopsContext';
 import { useClubs } from '@/contexts/ClubsContext';
-import { costumeApi, troopApi, Legion501Costume, TroopShift, AttendanceStatus, AttendanceSignupData, AttendeeType, CapacityInfo } from '@/services/api';
+import { costumeApi, troopApi, Legion501Costume, TroopShift, AttendanceStatus, AttendanceSignupData, AttendeeType, CapacityInfo, AttendeeWithDetails } from '@/services/api';
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
@@ -114,6 +114,95 @@ export default function TroopDetailsScreen() {
   // Calendar modal
   const [calendarModalVisible, setCalendarModalVisible] = useState(false);
 
+  // Attendee list state
+  const [attendees, setAttendees] = useState<AttendeeWithDetails[]>([]);
+  const [attendeesLoading, setAttendeesLoading] = useState(false);
+  const [attendeesExpanded, setAttendeesExpanded] = useState(false);
+  const [approvalLoading, setApprovalLoading] = useState<number | null>(null);
+
+  // Check if user is admin of the creating club (can edit this troop)
+  const canEdit = useMemo(() => {
+    if (!currentTroop?.created_by_club_id) {
+      return false;
+    }
+    return myClubs.some(
+      c => c.club_id === currentTroop.created_by_club_id &&
+           (c.role === 'admin' || c.role === 'super_admin'),
+    );
+  }, [currentTroop, myClubs]);
+
+  // Load attendees when expanded
+  const loadAttendees = async () => {
+    if (!id) {return;}
+    setAttendeesLoading(true);
+    try {
+      const result = await troopApi.getAttendees(parseInt(id, 10));
+      setAttendees(result.attendees);
+    } catch (error) {
+      console.error('Failed to load attendees:', error);
+    } finally {
+      setAttendeesLoading(false);
+    }
+  };
+
+  const toggleAttendees = () => {
+    if (!attendeesExpanded && attendees.length === 0) {
+      loadAttendees();
+    }
+    setAttendeesExpanded(!attendeesExpanded);
+  };
+
+  // Approve/reject attendee handlers
+  const handleApprove = async (attendeeId: number) => {
+    if (!id) {return;}
+    setApprovalLoading(attendeeId);
+    try {
+      await troopApi.approveAttendee(parseInt(id, 10), attendeeId);
+      await loadAttendees();
+      await fetchTroopById(parseInt(id, 10)); // Refresh counts
+    } catch (error) {
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to approve');
+    } finally {
+      setApprovalLoading(null);
+    }
+  };
+
+  const handleReject = async (attendeeId: number) => {
+    if (!id) {return;}
+    Alert.alert(
+      'Reject Signup',
+      'Are you sure you want to reject this signup?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reject',
+          style: 'destructive',
+          onPress: async () => {
+            setApprovalLoading(attendeeId);
+            try {
+              await troopApi.rejectAttendee(parseInt(id, 10), attendeeId);
+              await loadAttendees();
+              await fetchTroopById(parseInt(id, 10)); // Refresh counts
+            } catch (error) {
+              Alert.alert('Error', error instanceof Error ? error.message : 'Failed to reject');
+            } finally {
+              setApprovalLoading(null);
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  // Group attendees
+  const groupedAttendees = useMemo(() => {
+    const troopers = attendees.filter(a => a.attendee_type === 'trooper' && a.signup_status === 'confirmed');
+    const squires = attendees.filter(a => a.attendee_type === 'squire' && a.signup_status === 'confirmed');
+    const waitlisted = attendees.filter(a => a.signup_status === 'waitlisted');
+    const pending = attendees.filter(a => a.signup_status === 'pending_approval');
+    return { troopers, squires, waitlisted, pending };
+  }, [attendees]);
+
   useEffect(() => {
     if (id) {
       fetchTroopById(parseInt(id, 10));
@@ -177,6 +266,16 @@ export default function TroopDetailsScreen() {
     );
   }, [costumes, costumeSearch]);
 
+  // Check if user is a cadet for the selected club (cadets can only signup as squires)
+  const selectedClubMembership = useMemo(() => {
+    if (!selectedClubId) {return null;}
+    return myClubs.find(c => c.club_id === selectedClubId) || null;
+  }, [selectedClubId, myClubs]);
+
+  const isCadet = useMemo(() => {
+    return selectedClubMembership?.role === 'cadet';
+  }, [selectedClubMembership]);
+
   const openSignupModal = async (clubId: number) => {
     setSelectedClubId(clubId);
     setMenuVisible(false);
@@ -185,7 +284,10 @@ export default function TroopDetailsScreen() {
     setSelectedBackupCostume(null);
     setAttendanceStatus('confirmed');
     setSelectedShift(null);
-    setAttendeeType('trooper');
+    // Check if user is a cadet - if so, default to squire
+    const club = myClubs.find(c => c.club_id === clubId);
+    const userIsCadet = club?.role === 'cadet';
+    setAttendeeType(userIsCadet ? 'squire' : 'trooper');
     setFreeTextCostume('');
     setFreeTextBackupCostume('');
     setCostumeSearch('');
@@ -558,7 +660,19 @@ export default function TroopDetailsScreen() {
       <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
         <ThemedView style={styles.content}>
           <View style={styles.header}>
-            <Text variant="headlineMedium" style={styles.title}>{currentTroop.event_name}</Text>
+            <View style={styles.headerTop}>
+              <Text variant="headlineMedium" style={styles.title}>{currentTroop.event_name}</Text>
+              {canEdit && (
+                <Button
+                  mode="outlined"
+                  compact
+                  onPress={() => router.push(`/troop/edit?id=${id}`)}
+                  style={styles.editButton}
+                >
+                  Edit
+                </Button>
+              )}
+            </View>
             <Chip
               style={[
                 styles.statusChip,
@@ -592,13 +706,197 @@ export default function TroopDetailsScreen() {
                 </View>
               )}
 
-              {currentTroop.attendee_count !== undefined && (
-                <View style={styles.detailRow}>
-                  <Text variant="bodyMedium" style={styles.label}>Attendees</Text>
-                  <Text variant="bodyMedium">{currentTroop.attendee_count}</Text>
-                </View>
-              )}
             </Card.Content>
+          </Card>
+
+          {/* Pending Approvals - Admin Only */}
+          {canEdit && groupedAttendees.pending.length > 0 && (
+            <Card style={[styles.card, { borderLeftWidth: 3, borderLeftColor: colors.primary }]}>
+              <Card.Content>
+                <Text variant="titleMedium" style={[styles.sectionTitle, { color: colors.primary }]}>
+                  Pending Approval ({groupedAttendees.pending.length})
+                </Text>
+                <Divider style={styles.divider} />
+                {groupedAttendees.pending.map(attendee => (
+                  <View key={attendee.id} style={styles.attendeeItem}>
+                    <View style={styles.attendeeInfo}>
+                      <Text variant="bodyMedium" style={styles.attendeeName}>
+                        {attendee.first_name || attendee.username} {attendee.last_name || ''}
+                      </Text>
+                      <Text variant="bodySmall" style={{ opacity: 0.6 }}>
+                        {attendee.attendee_type === 'trooper' ? 'Trooper' : 'Squire'} • {attendee.club_name}
+                      </Text>
+                      {attendee.costume_name && (
+                        <Text variant="bodySmall" style={{ opacity: 0.6 }}>{attendee.costume_name}</Text>
+                      )}
+                    </View>
+                    <View style={styles.approvalButtons}>
+                      <Button
+                        mode="contained"
+                        compact
+                        onPress={() => handleApprove(attendee.id)}
+                        loading={approvalLoading === attendee.id}
+                        disabled={approvalLoading !== null}
+                        style={styles.approveButton}
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        mode="outlined"
+                        compact
+                        onPress={() => handleReject(attendee.id)}
+                        disabled={approvalLoading !== null}
+                        textColor={colors.error}
+                        style={styles.rejectButton}
+                      >
+                        Reject
+                      </Button>
+                    </View>
+                  </View>
+                ))}
+              </Card.Content>
+            </Card>
+          )}
+
+          {/* Costumed Troopers List */}
+          <Card style={styles.card}>
+            <Pressable onPress={toggleAttendees}>
+              <Card.Content style={styles.attendeeHeader}>
+                <View>
+                  <Text variant="titleMedium" style={styles.sectionTitle}>Costumed Troopers</Text>
+                  <Text variant="bodySmall" style={{ opacity: 0.7 }}>
+                    {attendeesExpanded
+                      ? `${groupedAttendees.troopers.length} confirmed`
+                      : 'Tap to view'
+                    }
+                  </Text>
+                </View>
+                <Text style={{ fontSize: 20 }}>{attendeesExpanded ? '▼' : '▶'}</Text>
+              </Card.Content>
+            </Pressable>
+
+            {attendeesExpanded && (
+              <Card.Content style={styles.attendeeContent}>
+                <Divider style={styles.divider} />
+                {attendeesLoading ? (
+                  <View style={styles.attendeeLoading}>
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  </View>
+                ) : groupedAttendees.troopers.length === 0 ? (
+                  <Text variant="bodyMedium" style={{ textAlign: 'center', opacity: 0.6, padding: 16 }}>
+                    No costumed troopers yet
+                  </Text>
+                ) : (
+                  groupedAttendees.troopers.map(attendee => (
+                    <View key={attendee.id} style={styles.attendeeItem}>
+                      <View style={styles.attendeeInfo}>
+                        <Text variant="bodyMedium" style={styles.attendeeName}>
+                          {attendee.first_name || attendee.username} {attendee.last_name || ''}
+                        </Text>
+                        {attendee.costume_name && (
+                          <Text variant="bodySmall" style={{ opacity: 0.6 }}>{attendee.costume_name}</Text>
+                        )}
+                      </View>
+                      {attendee.attendance_status === 'tentative' && (
+                        <Chip compact style={{ backgroundColor: colors.border + '40' }}>Tentative</Chip>
+                      )}
+                    </View>
+                  ))
+                )}
+
+                {/* Waitlisted Troopers */}
+                {groupedAttendees.waitlisted.filter(a => a.attendee_type === 'trooper').length > 0 && (
+                  <View style={styles.waitlistSection}>
+                    <Text variant="labelMedium" style={{ color: colors.error, marginBottom: 8 }}>
+                      Waitlist ({groupedAttendees.waitlisted.filter(a => a.attendee_type === 'trooper').length})
+                    </Text>
+                    {groupedAttendees.waitlisted
+                      .filter(a => a.attendee_type === 'trooper')
+                      .map(attendee => (
+                        <View key={attendee.id} style={styles.attendeeItem}>
+                          <View style={styles.attendeeInfo}>
+                            <Text variant="bodyMedium" style={styles.attendeeName}>
+                              {attendee.first_name || attendee.username} {attendee.last_name || ''}
+                            </Text>
+                            <Text variant="bodySmall" style={{ opacity: 0.6 }}>
+                              Position #{attendee.waitlist_position || '?'}
+                            </Text>
+                          </View>
+                        </View>
+                      ))}
+                  </View>
+                )}
+              </Card.Content>
+            )}
+          </Card>
+
+          {/* Squires List */}
+          <Card style={styles.card}>
+            <Pressable onPress={toggleAttendees}>
+              <Card.Content style={styles.attendeeHeader}>
+                <View>
+                  <Text variant="titleMedium" style={styles.sectionTitle}>Squires / Handlers</Text>
+                  <Text variant="bodySmall" style={{ opacity: 0.7 }}>
+                    {attendeesExpanded
+                      ? `${groupedAttendees.squires.length} confirmed`
+                      : 'Tap to view'
+                    }
+                  </Text>
+                </View>
+                <Text style={{ fontSize: 20 }}>{attendeesExpanded ? '▼' : '▶'}</Text>
+              </Card.Content>
+            </Pressable>
+
+            {attendeesExpanded && (
+              <Card.Content style={styles.attendeeContent}>
+                <Divider style={styles.divider} />
+                {attendeesLoading ? (
+                  <View style={styles.attendeeLoading}>
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  </View>
+                ) : groupedAttendees.squires.length === 0 ? (
+                  <Text variant="bodyMedium" style={{ textAlign: 'center', opacity: 0.6, padding: 16 }}>
+                    No squires yet
+                  </Text>
+                ) : (
+                  groupedAttendees.squires.map(attendee => (
+                    <View key={attendee.id} style={styles.attendeeItem}>
+                      <View style={styles.attendeeInfo}>
+                        <Text variant="bodyMedium" style={styles.attendeeName}>
+                          {attendee.first_name || attendee.username} {attendee.last_name || ''}
+                        </Text>
+                      </View>
+                      {attendee.attendance_status === 'tentative' && (
+                        <Chip compact style={{ backgroundColor: colors.border + '40' }}>Tentative</Chip>
+                      )}
+                    </View>
+                  ))
+                )}
+
+                {/* Waitlisted Squires */}
+                {groupedAttendees.waitlisted.filter(a => a.attendee_type === 'squire').length > 0 && (
+                  <View style={styles.waitlistSection}>
+                    <Text variant="labelMedium" style={{ color: colors.error, marginBottom: 8 }}>
+                      Waitlist ({groupedAttendees.waitlisted.filter(a => a.attendee_type === 'squire').length})
+                    </Text>
+                    {groupedAttendees.waitlisted
+                      .filter(a => a.attendee_type === 'squire')
+                      .map(attendee => (
+                        <View key={attendee.id} style={styles.attendeeItem}>
+                          <View style={styles.attendeeInfo}>
+                            <Text variant="bodyMedium" style={styles.attendeeName}>
+                              {attendee.first_name || attendee.username} {attendee.last_name || ''}
+                            </Text>
+                            <Text variant="bodySmall" style={{ opacity: 0.6 }}>
+                              Position #{attendee.waitlist_position || '?'}
+                            </Text>
+                          </View>
+                        </View>
+                      ))}
+                  </View>
+                )}
+              </Card.Content>
+            )}
           </Card>
 
           {(currentTroop.venue_name || address) && (
@@ -754,20 +1052,27 @@ export default function TroopDetailsScreen() {
             {/* Attendee Type Step */}
             {currentStep === 'attendee_type' && (
               <View style={styles.statusContainer}>
-                <RadioButton.Group onValueChange={value => setAttendeeType(value as AttendeeType)} value={attendeeType}>
+                <RadioButton.Group onValueChange={value => !isCadet && setAttendeeType(value as AttendeeType)} value={attendeeType}>
                   <Pressable
                     style={[
                       styles.statusOption,
                       { borderColor: colors.border },
                       attendeeType === 'trooper' && { backgroundColor: `${colors.primary}15`, borderColor: colors.primary },
+                      isCadet && { opacity: 0.5 },
                     ]}
-                    onPress={() => setAttendeeType('trooper')}
+                    onPress={() => !isCadet && setAttendeeType('trooper')}
+                    disabled={isCadet}
                   >
-                    <RadioButton value="trooper" />
+                    <RadioButton value="trooper" disabled={isCadet} />
                     <View style={styles.statusOptionText}>
-                      <Text variant="titleSmall">Trooper (In Costume)</Text>
-                      <Text variant="bodySmall" style={{ opacity: 0.7 }}>I will be wearing a costume at this event</Text>
-                      {capacityInfo?.max_troopers && (
+                      <Text variant="titleSmall">Costumed Trooper</Text>
+                      <Text variant="bodySmall" style={{ opacity: 0.7 }}>I will be wearing an approved costume</Text>
+                      {isCadet && (
+                        <Text variant="bodySmall" style={{ color: colors.error }}>
+                          Members only - Cadets must signup as Squire
+                        </Text>
+                      )}
+                      {!isCadet && capacityInfo?.max_troopers && (
                         <Text variant="bodySmall" style={{ color: capacityInfo.confirmed_troopers >= capacityInfo.max_troopers ? colors.error : colors.primary }}>
                           {capacityInfo.confirmed_troopers}/{capacityInfo.max_troopers} spots filled
                           {capacityInfo.confirmed_troopers >= capacityInfo.max_troopers && capacityInfo.waitlist_enabled && ' (waitlist available)'}
@@ -1020,10 +1325,16 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   header: {
+    marginBottom: 16,
+  },
+  headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 16,
+    marginBottom: 8,
+  },
+  editButton: {
+    marginLeft: 8,
   },
   title: {
     fontWeight: 'bold',
@@ -1235,5 +1546,48 @@ const styles = StyleSheet.create({
   },
   calendarOption: {
     marginBottom: 8,
+  },
+  // Attendee list styles
+  attendeeHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  attendeeContent: {
+    paddingTop: 0,
+  },
+  attendeeLoading: {
+    padding: 24,
+    alignItems: 'center',
+  },
+  attendeeItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
+  },
+  attendeeInfo: {
+    flex: 1,
+  },
+  attendeeName: {
+    fontWeight: '500',
+  },
+  approvalButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  approveButton: {
+    minWidth: 0,
+  },
+  rejectButton: {
+    minWidth: 0,
+  },
+  waitlistSection: {
+    marginTop: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.1)',
   },
 });

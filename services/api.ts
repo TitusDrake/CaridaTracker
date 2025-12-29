@@ -80,16 +80,27 @@ export interface Troop {
   city?: string | null;
   state?: string | null;
   zip_code?: string | null;
-  request_date?: string | null;
-  request_status?: string | null;
-  charity_name?: string | null;
-  charity_url?: string | null;
-  website_url?: string | null;
-  special_notes?: string | null;
-  is_visible: boolean;
+  start_time?: string | null;
+  arrival_time?: string | null;
+  end_time?: string | null;
+  prop_weapons_allowed?: boolean;
+  share_with_sister_groups?: boolean;
+  requested_characters_count?: string | null;
+  secure_changing_area?: boolean;
+  changing_area_description?: string | null;
+  amenities?: string | null;
+  description?: string | null;
+  signup_link?: string | null;
+  policies_link?: string | null;
+  max_troopers?: number | null;
+  max_squires?: number | null;
+  admin_approval_required?: boolean;
+  waitlist_enabled?: boolean;
   created_at: string;
   updated_at: string;
   // Extended fields from TroopWithDetails
+  creator_username?: string;
+  creator_club_name?: string;
   club_name?: string;
   organization_name?: string;
   attendee_count?: number;
@@ -106,13 +117,23 @@ export interface TroopCreateData {
   city?: string;
   state?: string;
   zip_code?: string;
-  request_date?: string;
-  request_status?: string;
-  charity_name?: string;
-  charity_url?: string;
-  website_url?: string;
-  special_notes?: string;
-  is_visible?: boolean;
+  start_time?: string;
+  arrival_time?: string;
+  end_time?: string;
+  prop_weapons_allowed?: boolean;
+  share_with_sister_groups?: boolean;
+  requested_characters_count?: string;
+  secure_changing_area?: boolean;
+  changing_area_description?: string;
+  amenities?: string;
+  description?: string;
+  signup_link?: string;
+  policies_link?: string;
+  max_troopers?: number | null;
+  max_squires?: number | null;
+  admin_approval_required?: boolean;
+  waitlist_enabled?: boolean;
+  club_ids?: number[];
 }
 
 export interface TroopUpdateData {
@@ -123,13 +144,23 @@ export interface TroopUpdateData {
   city?: string;
   state?: string;
   zip_code?: string;
-  request_date?: string;
-  request_status?: string;
-  charity_name?: string;
-  charity_url?: string;
-  website_url?: string;
-  special_notes?: string;
-  is_visible?: boolean;
+  start_time?: string;
+  arrival_time?: string;
+  end_time?: string;
+  prop_weapons_allowed?: boolean;
+  share_with_sister_groups?: boolean;
+  requested_characters_count?: string;
+  secure_changing_area?: boolean;
+  changing_area_description?: string;
+  amenities?: string;
+  description?: string;
+  signup_link?: string;
+  policies_link?: string;
+  max_troopers?: number | null;
+  max_squires?: number | null;
+  admin_approval_required?: boolean;
+  waitlist_enabled?: boolean;
+  club_ids?: number[];
 }
 
 export interface ClubMembership {

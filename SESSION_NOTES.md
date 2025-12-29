@@ -1,6 +1,6 @@
 # CaridaTracker Development Session - [DATE]
 
-> **⚠️ CRITICAL: Copy this section to every new session file**
+> **CRITICAL: Copy this section to every new session file**
 >
 > This template contains essential context that helps AI assistants quickly understand the project structure, architecture, and current state. Always include this section at the top of each new session file.
 
@@ -125,11 +125,23 @@ npm run migrate:down
 
 4. **club_members** - Users belong to clubs with roles (super_admin, admin, member, cadet)
 
-5. **troops** - Events (name, date, venue, address, times, amenities, description, etc.)
+5. **troops** - Events with capacity limits
+   - Core: name, date, venue, address, times, amenities, description
+   - **Capacity:** max_troopers, max_squires, admin_approval_required, waitlist_enabled
 
 6. **troop_clubs** - Controls which clubs can see/access each troop
 
-7. **troop_attendees** - User attendance records (UNIQUE per troop/user/club combo)
+7. **troop_attendees** - User attendance records
+   - Core: troop_id, user_id, club_id, status, notes, signed_up_at
+   - **Costume:** costume_id, costume_name, backup_costume_id, backup_costume_name
+   - **Status:** attendance_status ('confirmed'|'tentative'), signup_status ('confirmed'|'waitlisted'|'pending_approval'|'rejected')
+   - **Type:** attendee_type ('trooper'|'squire')
+   - **Waitlist:** waitlist_position, approved_by, approved_at
+   - **Shifts:** shift_id (FK to troop_shifts)
+
+8. **troop_shifts** - Time slots for multi-shift events
+   - id, troop_id, name, start_time, end_time
+   - max_attendees, max_troopers, max_squires
 
 ---
 
@@ -157,9 +169,23 @@ npm run migrate:down
 - `DELETE /api/troops/:id` - Delete troop (admin only)
 
 ### Attendance
-- `POST /api/troops/:id/attend` - Sign up for troop
+- `POST /api/troops/:id/attend` - Sign up for troop (with costume, shift, attendee_type)
 - `DELETE /api/troops/:id/attend` - Cancel attendance
-- `GET /api/troops/:id/attendees` - List attendees
+- `GET /api/troops/:id/attendees` - List attendees (returns { attendees, counts })
+- `GET /api/troops/:id/capacity` - Get capacity info for troop/shift
+- `GET /api/troops/:id/pending-approvals` - Get pending signups (admin)
+- `POST /api/troops/:id/approve/:attendeeId` - Approve signup (admin)
+- `POST /api/troops/:id/reject/:attendeeId` - Reject signup (admin)
+
+### Shifts
+- `GET /api/troops/:id/shifts` - Get shifts for troop
+- `POST /api/troops/:id/shifts` - Create shift (admin)
+- `PUT /api/troops/:id/shifts/:shiftId` - Update shift (admin)
+- `DELETE /api/troops/:id/shifts/:shiftId` - Delete shift (admin)
+
+### Costumes
+- `GET /api/costumes/my-costumes` - Get current user's 501st costumes (via 501st API)
+- `GET /api/costumes/501st/:legionId` - Get costumes by Legion ID
 
 ### Users
 - `GET /api/users/me/clubs` - Get user's club memberships
@@ -175,42 +201,45 @@ npm run migrate:down
 ## Current Features Implemented
 
 ### Frontend
-- ✅ Login/Registration screens with organization/club selection
-- ✅ Star Wars themes (Light Side, Dark Side, Bounty Hunter)
-- ✅ Authentication context and JWT token storage
-- ✅ Bottom tab navigation (Home, Troops, My Clubs, Profile)
-- ✅ TroopsContext and ClubsContext for state management
-- ✅ Home dashboard with real stats and upcoming troops
-- ✅ Troops list with upcoming/past separation
-- ✅ Troop details with attend/cancel functionality
-- ✅ My Clubs with membership list and stats
-- ✅ Club details with member list
-- ✅ Search screen with debounced troops/people search
-- ✅ Pull-to-refresh on all main screens
-- ✅ Jest testing infrastructure (11 tests passing)
+- Login/Registration screens with organization/club selection
+- Star Wars themes (Light Side, Dark Side, Bounty Hunter)
+- Authentication context and JWT token storage
+- Bottom tab navigation (Home, Troops, My Clubs, Profile)
+- TroopsContext and ClubsContext for state management
+- Home dashboard with real stats and upcoming troops
+- Troops list with upcoming/past separation
+- Troop details with attend/cancel functionality
+- My Clubs with membership list and stats
+- Club details with member list
+- Search screen with debounced troops/people search
+- Pull-to-refresh on all main screens
+- **Enhanced signup wizard with:**
+  - Attendee type selection (trooper vs squire/handler)
+  - 501st API costume selection (for 501st orgs)
+  - Free-text costume input (for non-501st orgs)
+  - Backup costume selection
+  - Attendance status (confirmed/tentative)
+  - Shift selection (when shifts configured)
+  - Capacity display with waitlist indicators
+  - Admin approval notices
+- Calendar integration (Google, Outlook, Yahoo)
+- Jest testing infrastructure (11 tests passing)
 
 ### Backend
-- ✅ JWT authentication
-- ✅ Complete CRUD for Troops
-- ✅ Attendance endpoints
-- ✅ User stats and clubs endpoints
-- ✅ Search endpoints
-- ✅ Club members endpoint
-- ✅ Seed data for organizations, clubs, and 5 test troops
-- ✅ Jest + Supertest testing (106 tests passing)
-
----
-
-## Test Data
-
-**5 Test Troops Seeded:**
-1. Harrisburg Hospital Visit (Dec 18, 2025 - past)
-2. Star Wars Day at Hersheypark (Jan 8, 2026 - upcoming)
-3. Reading Phillies Game (Jan 24, 2026 - upcoming)
-4. Lancaster Comic Con (Feb 8, 2026 - upcoming)
-5. York Revolution Game (Feb 23, 2026 - upcoming)
-
-All enabled for Garrison Carida (club 1), 3 also enabled for Kyber Base (club 2).
+- JWT authentication
+- Complete CRUD for Troops
+- Attendance with capacity limits and waitlist
+- Trooper vs squire attendee types
+- Waitlist queue with automatic promotion
+- Admin approval workflow for signups
+- Costume and backup costume fields
+- Shift management
+- 501st Legion costume API proxy
+- User stats and clubs endpoints
+- Search endpoints
+- Club members endpoint
+- Seed data for organizations, clubs, and test troops
+- Jest + Supertest testing (106 tests passing)
 
 ---
 
@@ -247,23 +276,60 @@ npm test
 
 ## Current Session Work
 
-> **Session-specific work goes here**
+### Session Date: 2025-12-27
+
+#### Completed: Phase 1 - Admin UI for Troop Management
+- [x] Updated backend troop model and controller to handle capacity fields (max_troopers, max_squires, admin_approval_required, waitlist_enabled)
+- [x] Created `/app/troop/create.tsx` - Full troop create/edit form with:
+  - Event details (name, date, venue, address, city/state/zip)
+  - Time settings (arrival, start, end)
+  - Description and amenities
+  - Venue options (prop weapons, secure changing area, share with sister groups)
+  - Capacity limits (max troopers, max squires)
+  - Waitlist toggle
+  - Admin approval toggle
+  - **Shift management UI** (add/edit/delete shifts with capacity per shift)
+- [x] Created `/app/troop/edit.tsx` - Wrapper for edit mode
+- [x] Added FAB button to troops list for admins to create new troops
+- [x] Added Edit button to troop detail page for admins
+- [x] All lint checks passing
+
+#### Completed: Phase 2 - Attendee List Display
+- [x] Split attendee list into two separate cards: "Costumed Troopers" and "Squires / Handlers"
+- [x] Each list has its own waitlist section
+- [x] Show waitlist position for waitlisted users
+- [x] Pending approval section with approve/reject buttons (admin only)
+- [x] Tentative attendance status indicator
+- [x] Costume display for troopers
+- [x] All lint checks passing
+
+#### Completed: Signup Restrictions
+- [x] Cadets can only sign up as Squire (Costumed Trooper option disabled for cadets)
+- [x] Members or higher can choose either Trooper or Squire
+- [x] Users can sign up for multiple shifts within a troop
+- [x] Users can only sign up once per shift (prevents both Trooper AND Squire signup for same shift)
+- [x] Backend enforces single signup per user per shift with clear error message
+- [x] All backend tests passing (106 tests)
 
 ---
 
 ## Next Session Priorities
 
-### Phase 6: Security & Validation
+### 1. Waitlist Notifications (Phase 3)
+- [ ] Notify users when promoted from waitlist
+- [ ] Email/push notification system
+
+### 4. Profile Screen
+- [ ] Add TKID field for 501st members
+- [ ] Show club memberships
+- [ ] Edit profile functionality
+
+### Phase 6: Security & Validation (Lower Priority)
 - [ ] Input Validation & Security
 - [ ] Password Security
 - [ ] Username/Email Uniqueness
 - [ ] Email Verification
 - [ ] Forgot Password Functionality
-
-### UI Fine-tuning
-- [ ] Any UI/UX improvements requested
-- [ ] Error handling improvements
-- [ ] Loading state improvements
 
 ---
 

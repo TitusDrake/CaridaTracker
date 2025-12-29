@@ -1,10 +1,11 @@
 import { StyleSheet, ScrollView, View, RefreshControl, Pressable } from 'react-native';
-import { Text, Surface, Card, Chip, ActivityIndicator } from 'react-native-paper';
-import { useEffect, useCallback } from 'react';
+import { Text, Surface, Card, Chip, ActivityIndicator, FAB } from 'react-native-paper';
+import { useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'expo-router';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTroops } from '@/contexts/TroopsContext';
+import { useClubs } from '@/contexts/ClubsContext';
 import { Troop } from '@/services/api';
 
 function formatDate(dateString: string): string {
@@ -92,11 +93,18 @@ function TroopCard({ troop, onPress, colors }: TroopCardProps) {
 export default function TroopsScreen() {
   const { colors } = useTheme();
   const { troops, isLoading, error, fetchTroops } = useTroops();
+  const { myClubs, fetchMyClubs } = useClubs();
   const router = useRouter();
+
+  // Check if user is admin of any club
+  const isAdmin = useMemo(() => {
+    return myClubs.some(c => c.role === 'admin' || c.role === 'super_admin');
+  }, [myClubs]);
 
   useEffect(() => {
     fetchTroops();
-  }, [fetchTroops]);
+    fetchMyClubs();
+  }, [fetchTroops, fetchMyClubs]);
 
   const onRefresh = useCallback(() => {
     fetchTroops();
@@ -110,14 +118,19 @@ export default function TroopsScreen() {
   const upcomingTroops = troops.filter(t => isUpcoming(t.event_date));
   const pastTroops = troops.filter(t => !isUpcoming(t.event_date));
 
+  const handleCreateTroop = () => {
+    router.push('/troop/create');
+  };
+
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      refreshControl={
-        <RefreshControl refreshing={isLoading} onRefresh={onRefresh} colors={[colors.primary]} />
-      }
-    >
-      <ThemedView style={styles.content}>
+    <View style={[styles.wrapper, { backgroundColor: colors.background }]}>
+      <ScrollView
+        style={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={isLoading} onRefresh={onRefresh} colors={[colors.primary]} />
+        }
+      >
+        <ThemedView style={styles.content}>
         <View style={styles.header}>
           <Text variant="headlineLarge" style={styles.title}>Troops</Text>
           <Text variant="bodyLarge" style={styles.subtitle}>
@@ -180,12 +193,25 @@ export default function TroopsScreen() {
             )}
           </>
         )}
-      </ThemedView>
-    </ScrollView>
+        </ThemedView>
+      </ScrollView>
+
+      {isAdmin && (
+        <FAB
+          icon="plus"
+          style={[styles.fab, { backgroundColor: colors.primary }]}
+          onPress={handleCreateTroop}
+          label="Create Troop"
+        />
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+  },
   container: {
     flex: 1,
   },
@@ -280,5 +306,10 @@ const styles = StyleSheet.create({
   attendeeCount: {
     opacity: 0.5,
     marginLeft: 'auto',
+  },
+  fab: {
+    position: 'absolute',
+    right: 16,
+    bottom: 16,
   },
 });
