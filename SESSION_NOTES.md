@@ -276,7 +276,41 @@ npm test
 
 ## Current Session Work
 
-### Session Date: 2025-12-27
+### Session Date: 2025-12-28
+
+#### Completed: Per-Club Per-Shift Signup Restriction
+- [x] Updated `isAttending()` method in `attendance.model.ts` to accept optional `shiftId` parameter
+- [x] Changed signup restriction from "once per shift across all clubs" to "once per shift per club"
+- [x] Users can now sign up for the same shift with different clubs (e.g., 501st AND Rebel Legion)
+- [x] Users still cannot sign up twice for the same shift with the SAME club
+- [x] All 106 backend tests passing
+
+#### Completed: Test Admin Users Created
+- [x] Created `superadmin` user (password: `password`) - super_admin role in Garrison Carida
+- [x] Created `test501admin` user (password: `password`) - admin role in Garrison Carida
+
+#### Completed: Email Service Setup
+- [x] Installed nodemailer and @types/nodemailer
+- [x] Created `src/services/email.service.ts` with:
+  - Lazy initialization with Ethereal fallback (no Docker needed)
+  - `sendEmail()` - Generic email sending
+  - `sendPasswordResetEmail()` - Password reset with tokenized link
+  - `sendEmailVerification()` - Account verification email
+  - `sendTroopSignupConfirmation()` - Signup notification
+  - `verifyConnection()` - Test SMTP connection
+  - Preview URL logging for Ethereal emails
+- [x] Created `docker-compose.yml` with Mailpit for local email testing (optional)
+- [x] Updated `.env` and `.env.example` with SMTP configuration
+- [x] Email service auto-uses Ethereal when SMTP_HOST is empty (view at ethereal.email)
+
+#### In Progress: Email Flows
+- [ ] Password reset flow (DB schema, API endpoints)
+- [ ] Email verification flow (DB schema, API endpoints)
+- [ ] Integrate Resend for production email delivery
+
+---
+
+## Previous Session Work (2025-12-27)
 
 #### Completed: Phase 1 - Admin UI for Troop Management
 - [x] Updated backend troop model and controller to handle capacity fields (max_troopers, max_squires, admin_approval_required, waitlist_enabled)
@@ -315,11 +349,16 @@ npm test
 
 ## Next Session Priorities
 
-### 1. Waitlist Notifications (Phase 3)
+### 1. Email Flows (In Progress)
+- [ ] Password reset flow (DB schema for tokens, API endpoints)
+- [ ] Email verification flow (DB schema, API endpoints)
+- [ ] Integrate Resend for production
+
+### 2. Waitlist Notifications (Phase 3)
 - [ ] Notify users when promoted from waitlist
 - [ ] Email/push notification system
 
-### 4. Profile Screen
+### 3. Profile Screen
 - [ ] Add TKID field for 501st members
 - [ ] Show club memberships
 - [ ] Edit profile functionality
@@ -328,10 +367,8 @@ npm test
 - [ ] Input Validation & Security
 - [ ] Password Security
 - [ ] Username/Email Uniqueness
-- [ ] Email Verification
-- [ ] Forgot Password Functionality
 
 ---
 
-**Session Date:** [DATE]
-**Session Status:** [In Progress / Completed]
+**Session Date:** 2025-12-28
+**Session Status:** In Progress
