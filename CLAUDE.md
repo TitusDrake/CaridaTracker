@@ -118,6 +118,7 @@ This project follows all rules defined in the master CLAUDE.md located at ~/Deve
 - **CI/CD** — all checks pass before merging development to main
 - **Error Handling** — global handler, consistent error format, log for devs, return for clients
 - **Database Migrations** — backward-compatible, timestamped, tested, never hand-edit applied migrations
+- **Project Planning** — GitHub Projects CLI (`gh project`) is available; preferred to break planning into GitHub Issues to track work
 
 Do not duplicate these rules in this file. Refer to the master for full details.
 
